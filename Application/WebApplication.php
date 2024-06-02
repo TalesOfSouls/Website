@@ -80,25 +80,25 @@ class WebApplication extends ApplicationAbstract
 
             $this->theme = $this->getApplicationTheme($request, $config['app']['domains']);
 
-            $app = '\Web\\' . $applicationName . '\Application';
+            $app = '\\Application\\' . $applicationName . '\\Application';
             $sub = new $app($this, $config);
         } catch (DatabaseException $e) {
             $this->logger->critical(FileLogger::MSG_FULL, [
                 'message' => $e->getMessage(),
                 'line'    => __LINE__, ]);
-            $sub = new \Web\E503\Application($this, $config);
+            $sub = new \Application\Frontend\Application($this, $config);
         } catch (UnexpectedApplicationException $e) {
             $this->logger->critical(FileLogger::MSG_FULL, [
                 'message' => $e->getMessage(),
                 'line'    => __LINE__, ]);
-            $sub = new \Web\E404\Application($this, $config);
+            $sub = new \Application\Frontend\Application($this, $config);
         } catch (\Throwable $t) {
             $this->logger->critical(FileLogger::MSG_FULL, [
                 'message' => $t->getMessage(),
                 'line'    => __LINE__, ]);
-            $sub = new \Web\E500\Application($this, $config);
+            $sub = new \Application\Frontend\Application($this, $config);
         } finally {
-            $sub      ??= new \Web\E500\Application($this, $config);
+            $sub      ??= new \Application\Frontend\Application($this, $config);
             $response ??= new HttpResponse();
             $request  ??= HttpRequest::createFromSuperglobals();
 
