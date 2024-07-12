@@ -82,16 +82,6 @@ class WebApplication extends ApplicationAbstract
 
             $app = '\\Application\\' . $applicationName . '\\Application';
             $sub = new $app($this, $config);
-        } catch (DatabaseException $e) {
-            $this->logger->critical(FileLogger::MSG_FULL, [
-                'message' => $e->getMessage(),
-                'line'    => __LINE__, ]);
-            $sub = new \Application\Frontend\Application($this, $config);
-        } catch (UnexpectedApplicationException $e) {
-            $this->logger->critical(FileLogger::MSG_FULL, [
-                'message' => $e->getMessage(),
-                'line'    => __LINE__, ]);
-            $sub = new \Application\Frontend\Application($this, $config);
         } catch (\Throwable $t) {
             $this->logger->critical(FileLogger::MSG_FULL, [
                 'message' => $t->getMessage(),

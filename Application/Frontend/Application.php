@@ -229,8 +229,6 @@ final class Application
                 $pageView->setTemplate('/Application/Frontend/tpl/general');
             }
 
-            $pageView->setData('short_about', Markdown::parse(''));
-
             return $this->app->dispatcher->dispatch($routes, $request, $response);
         }
     }

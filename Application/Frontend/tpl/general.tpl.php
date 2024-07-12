@@ -13,7 +13,6 @@
  */
 declare(strict_types=1);
 
-use phpOMS\Application\ApplicationStatus;
 use phpOMS\Uri\UriFactory;
 
 /** @var Web\Backend\BackendView $this */
@@ -54,138 +53,31 @@ $dispatch = $this->data['dispatch'] ?? [];
 <body>
 <div>
     <div id="video-pane">
-        <video id="header-video" src="https://videos.pexels.com/video-files/7710243/7710243-hd_1280_720_30fps.mp4" loop="loop" autoplay="autoplay" playsinline="playsinline"></video>
+        <img id="header-video" src="/Application/Frontend/img/dusk_2.jpg">
     </div>
-    <div class="floater">
-    <header>
-        <div id="company">Tales of Souls</div>
-        <nav id="top-nav">
-            <ul>
-                <li><a href="">Home</a></li>
-                <li><a href="">Map</a></li>
-                <li><a href="">Wiki</a></li>
-                <li><a href="">Buy</a></li>
-                <li><a href="">Login</a></li>
-            </ul>
-        </nav>
-    </header>
-    </div>
+    <?php include __DIR__ . '/header.php'; ?>
 </div>
 <main>
-    <div class="floater">
-        <div id="welcome-section">
-            <h1>Tales of Souls Development</h1>
-            <p>Follow our development progress through our news posts, on our discord or live streams. If you would like to you can also support us on patreon.</p>
-            <p><a class="button" href="">Discord</a><a class="button featured" href="">Patreon</a></p>
-        </div>
+<?php
+    $c = 0;
+    foreach ($dispatch as $view) {
+        if (!($view instanceof \phpOMS\Views\NullView)
+            && $view instanceof \phpOMS\Contract\RenderableInterface
+        ) {
+            $render = $view->render();
+            if ($render === '') {
+                continue;
+            }
 
-        <div id="news-section">
-            <h2>Latest<a href="more">more</a></h2>
-            <div class="flex-row">
-                <div class="col-3">
-                    <img src="https://images.pexels.com/photos/1279813/pexels-photo-1279813.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
+            echo $render;
+            ++$c;
+        }
+    }
 
-                <div class="col-3">
-                    <img src="https://images.pexels.com/photos/1153895/pexels-photo-1153895.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
-
-                <div class="col-3">
-                    <img src="https://images.pexels.com/photos/2541310/pexels-photo-2541310.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
-
-                <div class="col-3">
-                    <img src="https://images.pexels.com/photos/1621793/pexels-photo-1621793.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="section front-section-a">
-        <img src="https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-        <div class="floater">
-            <h4></h4>
-            <h1></h1>
-            <p><a class="button" href="">MORE</a></p>
-        </div>
-    </div>
-    <div class="section front-section-b">
-        <img src="https://images.pexels.com/photos/1109352/pexels-photo-1109352.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-        <div class="floater">
-            <h4></h4>
-            <h1></h1>
-            <p><a class="button" href="">MORE</a></p>
-        </div>
-    </div>
-    <div class="section front-section-a">
-        <img src="https://images.pexels.com/photos/1527934/pexels-photo-1527934.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1">
-        <div class="floater">
-            <h4></h4>
-            <h1></h1>
-            <p><a class="button" href="">MORE</a></p>
-        </div>
-    </div>
-    <div class="section front-section-b">
-        <img src="https://science.nasa.gov/wp-content/uploads/2023/09/web-first-images-release.png?w=2048&format=webp">
-        <div class="floater">
-            <h4></h4>
-            <h1></h1>
-            <p><a class="button" href="">MORE</a></p>
-        </div>
-    </div>
+    if ($c === 0) {
+        include __DIR__ . '/Error/404.tpl.php';
+    }
+?>
 </main>
-<footer>
-    <div class="floater">
-        <div>
-            <h1>About</h1>
-
-            Jingga was founded in 2023 by Dennis Eichhorn and provides smart business solutions for every company size. Managing and performing daily business tasks has naver been easier.
-
-            Our software is user friendly, performant, affordable and versatile.
-        </div>
-        <div>
-            <h1>Social</h1>
-            <ul>
-                <li><a href="">Twitter</a></li>
-                <li><a href="">Facebook</a></li>
-                <li><a href="">Instagram</a></li>
-                <li><a href="">YouTube</a></li>
-                <li><a href="">Donate</a></li>
-                <li><a href="">Patreon</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <h1>Other</h1>
-            <ul>
-                <li><a href="">Feedback</a></li>
-                <li><a href="">Contact</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <h1>Legal</h1>
-            <ul>
-                <li><a href="">Imprint</a></li>
-                <li><a href="">Terms of Service</a></li>
-                <li><a href="">Privacy</a></li>
-            </ul>
-        </div>
-    </div>
-</footer>
+<?php include __DIR__ . '/footer.php'; ?>
 <?= $head->renderAssetsLate(); ?>

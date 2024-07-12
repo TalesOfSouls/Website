@@ -52,45 +52,109 @@ $dispatch = $this->data['dispatch'] ?? [];
     <script><?= $head->renderScript(); ?></script>
 </head>
 <body>
-<div id="video-pane">
-    <video id="header-video" src="https://bnetcmsus-a.akamaihd.net/cms/content_entry_media/m1/M1QEYAXEAWPX1699388765299.mp4" loop="loop" autoplay="autoplay" playsinline="playsinline"></video>
+<div>
+    <div id="video-pane">
+        <video id="header-video" src="https://videos.pexels.com/video-files/7710243/7710243-hd_1280_720_30fps.mp4" loop="loop" autoplay="autoplay" playsinline="playsinline"></video>
+    </div>
+    <?php include __DIR__ . '/header.php'; ?>
 </div>
-<header>
-    <nav id="top-nav">
-        <ul>
-            <li><a href="">Home</a></li>
-            <li><a href="">Map</a></li>
-            <li><a href="">Wiki</a></li>
-            <li><a href="">Buy</a></li>
-            <li><a href="">Login</a></li>
-        </ul>
-    </nav>
-</header>
 <main>
-    <?php
-    $c = 0;
-    foreach ($dispatch as $view) {
-        if (!($view instanceof \phpOMS\Views\NullView)
-            && $view instanceof \phpOMS\Contract\RenderableInterface
-        ) {
-            $render = $view->render();
-            if ($render === '') {
-                continue;
-            }
+    <div class="floater">
+        <div id="welcome-section">
+            <h1>Tales of Souls Development</h1>
+            <p>Follow our development progress through our news posts, on our discord or live streams. If you would like to you can also support us on patreon.</p>
+            <p><a class="button" href="">Discord</a><a class="button featured" href="">Patreon</a></p>
+        </div>
 
-            echo $render;
-            ++$c;
-        }
-    }
+        <div id="news-section">
+            <h2>Latest<a href="more">more</a></h2>
+            <div class="flex-row">
+                <div class="col-3">
+                    <div class="bg-img">
+                        <img src="/Application/Frontend/img/hills.jpg">
+                    </div>
+                    <div>
+                        <h5>Date</h5>
+                        <h3></h3>
+                    </div>
+                </div>
 
-    /*
-    if ($c === 0) {
-        include __DIR__ . '/error/404.tpl.php';
-    }
-    */
-    ?>
-</div>
+                <div class="col-3">
+                    <div class="bg-img">
+                        <img src="/Application/Frontend/img/sky.jpg">
+                    </div>
+                    <div>
+                        <h5>Date</h5>
+                        <h3></h3>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="bg-img">
+                        <img src="/Application/Frontend/img/mountain_side.jpg">
+                    </div>
+                    <div>
+                        <h5>Date</h5>
+                        <h3></h3>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="bg-img">
+                        <img src="/Application/Frontend/img/dusk.jpg">
+                    </div>
+                    <div>
+                        <h5>Date</h5>
+                        <h3></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="front-section front-section-a">
+        <div class="bg-img">
+            <img src="/Application/Frontend/img/sky.jpg">
+        </div>
+        <div class="floater">
+            <h4></h4>
+            <h1>Races</h1>
+            <p>Find out more about the races in Tales of Souls, their history, affiliations and design.</p>
+            <p><a class="button" href="">MORE</a></p>
+        </div>
+    </div>
+    <div class="front-section front-section-b">
+        <div class="bg-img">
+            <img src="/Application/Frontend/img/hill_up.jpg">
+        </div>
+        <div class="floater">
+            <h4></h4>
+            <h1>Classes</h1>
+            <p>Learn more about the different classes, their strengths weaknesses and design.</p>
+            <p><a class="button" href="">MORE</a></p>
+        </div>
+    </div>
+    <div class="front-section front-section-a">
+        <div class="bg-img">
+            <img src="/Application/Frontend/img/dusk.jpg">
+        </div>
+        <div class="floater">
+            <h4></h4>
+            <h1>Items</h1>
+            <p>A vast amount of items await you with many unique fighting styles and designs.</p>
+            <p><a class="button" href="">MORE</a></p>
+        </div>
+    </div>
+    <div class="front-section front-section-b">
+        <div class="bg-img">
+            <img src="/Application/Frontend/img/dusk_2.jpg">
+        </div>
+        <div class="floater">
+            <h4></h4>
+            <h1>Programming</h1>
+            <p>;laksjdfka sdfkla jdfkajdsfakjwejioa djfoiasjdfklasdjf iwejfijakghasjd fksadf</p>
+            <p><a class="button" href="">MORE</a></p>
+        </div>
+    </div>
 </main>
-<footer>
-</footer>
+<?php include __DIR__ . '/footer.php'; ?>
 <?= $head->renderAssetsLate(); ?>

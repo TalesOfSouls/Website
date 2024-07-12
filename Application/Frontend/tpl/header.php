@@ -1,28 +1,16 @@
-<nav>
-    <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">News</a></li>
-        <li><a href="#">Map</a></li>
-        <li><a href="#">Wiki</a>
+<div class="floater">
+    <header>
+        <div id="company">Tales of Souls</div>
+        <nav id="top-nav">
             <ul>
-                <li><a href="#">History</a></li>
-                <li><a href="#">Languages</a></li>
-                <li><a href="#">Science</a></li>
-                <li><a href="#">Religion</a></li>
-                <li><a href="#">Classes</a></li>
-                <li><a href="#">Items</a></li>
-                <li><a href="#">Mobs</a></li>
-                <li><a href="#">Jobs</a></li>
-                <li><a href="#">Quests</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/news">News</a></li>
+                <!--<li><a href="/ladder">Ladder</a></li>-->
+                <li><a href="/wiki">Wiki</a></li>
+                <li><a href="/patreon">Patreon</a></li>
+                <!--<li><a href="/shop">Buy</a></li>-->
+                <!--<li><a href="/login">Login</a></li>-->
             </ul>
-        </li>
-        <li><a href="#">Shop</a></li>
-        <li><a href="#">Ladders</a></li>
-        <li><a href="#">Buy</a></li>
-        <li><a href="#">Login</a></li>
-        <li><a href="#">Guild</a></li>
-        <li><a href="#">Pets</a></li>
-        <li><a href="#">Feedback</a></li>
-        <li><a href="#">FAQ</a></li>
-    </ul>
-</nav>
+        </nav>
+    </header>
+</div>
