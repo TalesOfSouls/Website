@@ -23,6 +23,7 @@
             <h1>Other</h1>
             <ul>
                 <li><a href="/feedback">Feedback</a></li>
+                <li><a href="/development">Development</a></li>
                 <li><a href="">Discord</a></li>
                 <li><a href="/contact">Contact</a></li>
             </ul>

@@ -33,11 +33,9 @@ use phpOMS\Message\Http\HttpRequest;
 use phpOMS\Message\Http\HttpResponse;
 use phpOMS\Message\Http\RequestStatusCode;
 use phpOMS\Model\Html\Head;
-use phpOMS\Module\ModuleManager;
 use phpOMS\Router\RouteStatus;
 use phpOMS\Router\WebRouter;
 use phpOMS\Uri\UriFactory;
-use phpOMS\Utils\Parser\Markdown\Markdown;
 use Application\WebApplication;
 use Application\Frontend\AppView;
 

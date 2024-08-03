@@ -46,6 +46,72 @@ return [
             'verb' => RouteVerb::GET,
         ],
     ],
+    '^/game' => [
+        [
+            'dest' => '\Controller\FrontendController:gameView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/player$' => [
+        [
+            'dest' => '\Controller\FrontendController:profilePlayerView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/player/\d+' => [
+        [
+            'dest' => '\Controller\FrontendController:profilePlayerView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/guild$' => [
+        [
+            'dest' => '\Controller\FrontendController:profileGuildView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/guild/\d+' => [
+        [
+            'dest' => '\Controller\FrontendController:profileGuildView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/\d+/character$' => [
+        [
+            'dest' => '\Controller\FrontendController:profileCharacterView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/profile/\d+/character/\d+' => [
+        [
+            'dest' => '\Controller\FrontendController:profileCharacterView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/database$' => [
+        [
+            'dest' => '\Controller\FrontendController:databaseView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/database/item/\d+$' => [
+        [
+            'dest' => '\Controller\FrontendController:databaseItemView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/database/skill/\d+$' => [
+        [
+            'dest' => '\Controller\FrontendController:databaseSkillView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/ladder' => [
+        [
+            'dest' => '\Controller\FrontendController:ladderView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
     '^/shop' => [
         [
             'dest' => '\Controller\FrontendController:shopView',

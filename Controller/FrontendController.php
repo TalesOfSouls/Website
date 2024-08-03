@@ -245,6 +245,26 @@ final class FrontendController extends ModuleAbstract
         return $view;
     }
 
+    public function gameView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Game';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/game');
+
+        return $view;
+    }
+
+    public function ladderView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Ladder';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/ladder');
+
+        return $view;
+    }
+
     public function shopItemView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $response->data['Content']->head->title .= ' - Shop';
