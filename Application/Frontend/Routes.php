@@ -52,6 +52,18 @@ return [
             'verb' => RouteVerb::GET,
         ],
     ],
+    '^/faq' => [
+        [
+            'dest' => '\Controller\FrontendController:faqView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/wiki' => [
+        [
+            'dest' => '\Controller\FrontendController:wikiView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
     '^/profile/player$' => [
         [
             'dest' => '\Controller\FrontendController:profilePlayerView',
@@ -109,6 +121,24 @@ return [
     '^/ladder' => [
         [
             'dest' => '\Controller\FrontendController:ladderView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/build/list' => [
+        [
+            'dest' => '\Controller\FrontendController:buildListView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/build/planner' => [
+        [
+            'dest' => '\Controller\FrontendController:buildPlannerView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/auction' => [
+        [
+            'dest' => '\Controller\FrontendController:auctionHouseView',
             'verb' => RouteVerb::GET,
         ],
     ],

@@ -1,3 +1,10 @@
+<?php
+use Models\PlayerClassMapper;
+
+$classes = PlayerClassMapper::getAll()->executeGetArray();
+
+$time = time();
+?>
 <div class="floater">
     <div id="welcome-section">
         <h1>Ladder</h1>
@@ -41,40 +48,20 @@
 
         <select>
             <option disabled selected>Class
-            <option>Overall
-            <optgroup label="Warrior">
-                <option>Monk
-                <option>Paladin
-                <option>Knight
-                <option>Dualist
-            </optgroup>
-            <optgroup label="Outcast">
-                <option>Berserker
-                <option>Assassin
-                <option>Engineer
-                <option>Archeologist
-                <option>Tormentor
-            </optgroup>
-            <optgroup label="Ranger">
-                <option>Scout
-                <option>Hunter
-                <option>Beast Master
-                <option>Druid
-            </optgroup>
-            <optgroup label="Caster">
-                <option>Mage
-                <option>Priest
-                <option>Totemist
-                <option>Shaman
-                <option>Spellblade
-                <option>Scribe
-                <option>Bard
-            </optgroup>
-            <optgroup label="Summoner">
-                <option>Necromancer
-                <option>Witch Doctor
-                <option>Conjuror
-            </optgroup>
+            <option>Any
+            <?php foreach ($classes as $category) : ?>
+            <?php if ($category->parent === null
+                && ($category->releaseDate === null || $category->releaseDate->getTimestamp() < $time)) : ?>
+                <optgroup label="<?= $this->printHtml($category->name); ?>">
+                <?php foreach ($classes as $cl) : ?>
+                    <?php if ($cl->parent === $category->id
+                        && ($cl->releaseDate === null || $cl->releaseDate->getTimestamp() < $time)) : ?>
+                        <option><?= $this->printHtml($cl->name); ?></option>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                </optgroup>
+            <?php endif; ?>
+            <?php endforeach; ?>
         </select>
 
         <select>
@@ -115,7 +102,7 @@
     </div>
 
     <div class="floater">
-        <table>
+        <table class="content-table">
             <thead>
                 <tr>
                     <th>Rank</th>

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Controller;
 
+use Models\FaqMapper;
 use phpOMS\Account\PermissionType;
 use phpOMS\Asset\AssetType;
 use phpOMS\Contract\RenderableInterface;
@@ -255,12 +256,70 @@ final class FrontendController extends ModuleAbstract
         return $view;
     }
 
+    public function faqView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - FAQ';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/faq');
+
+        $view->data['faq'] = FaqMapper::getAll()->executeGetArray();
+
+        return $view;
+    }
+
+    public function wikiView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Wiki';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/wiki');
+
+        $pathElements = $request->uri->getPathElements(0);
+        array_shift($pathElements);
+        $path = \implode('_', $pathElements);
+
+        $view->data['path'] = $path;
+
+        return $view;
+    }
+
     public function ladderView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $response->data['Content']->head->title .= ' - Ladder';
 
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/ladder');
+
+        return $view;
+    }
+
+    public function buildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Builds';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/build_list');
+
+        return $view;
+    }
+
+    public function buildPlannerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Build';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/build_planner');
+
+        return $view;
+    }
+
+    public function auctionHouseView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Ladder';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/auction_house');
 
         return $view;
     }
