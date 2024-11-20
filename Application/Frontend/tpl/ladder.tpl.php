@@ -74,6 +74,7 @@ $time = time();
         <select>
             <option disabled selected>Type
             <option>Level
+            <option>Speedrun
             <option>Achievement
             <option>Raid
             <option>Dungeon
