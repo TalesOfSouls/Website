@@ -33,16 +33,18 @@ $time = time();
             <optgroup label="HC">
                 <option>Any HC
                 <option>HC
-                <option>HCS
                 <option>HCSF
+                <option>HCS
                 <option>HCSSF
+                <option>HCGF
             </optgroup>
             <optgroup label="SC">
                 <option>Any SC
                 <option>SC
-                <option>SCS
                 <option>SCSF
+                <option>SCS
                 <option>SCSSF
+                <option>SCGF
             </optgroup>
         </select>
 
@@ -77,7 +79,17 @@ $time = time();
             <option>Speedrun
             <option>Achievement
             <option>Raid
-            <option>Dungeon
+            <optgroup label="Dungeon">
+                <option>Solo-NPC Dungeon
+                <option>Grouped Dungeon
+            </optgroup>
+            <optgroup label="Trial">
+                <option>Solo Trial
+                <option>Solo-NPC Trial
+                <option>Grouped Trial
+            </optgroup>
+            <option>World Dungeon
+            <option>Trial
             <option>Jumping Puzzle
             <option>Holdout
             <option>Dodging
@@ -107,7 +119,7 @@ $time = time();
             <thead>
                 <tr>
                     <th>Rank</th>
-                    <th>Player</th>
+                    <th>Player/Guild</th>
                     <th>Class</th>
                     <th>Mode</th>
                     <th>Server</th>
