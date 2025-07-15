@@ -1,26 +1,60 @@
 <?php
 
-use Models\ItemTypeMapper;
-use Models\ItemRarityMapper;
-use phpOMS\Utils\Parser\Markdown\Markdown;
+use Models\ItemMapper;
+use Models\RecipeMapper;
 
-$types = ItemTypeMapper::getAll()->executeGetArray();
-$rarities = ItemRarityMapper::getAll()->executeGetArray();
+$item = ItemMapper::get()
+    ->where('id', $this->request->getDataInt('id'))
+    ->executeGet();
+
+/**
+ * @var \Models\Recipe[] $recipes
+ */
+$recipes = RecipeMapper::getAll()
+    ->with('ingredients')
+    ->with('ingredients/item')
+    ->where('for', $this->request->getDataInt('id'))
+    ->executeGetArray();
+
+/**
+ * @var \Models\Recipe[] $usedin
+ */
+$usedin = RecipeMapper::getAll()
+    ->with('for')
+    ->with('ingredients')
+    ->where('ingredients/item', $this->request->getDataInt('id'))
+    ->executeGetArray();
 
 $time = time();
 ?>
-<h1>Item</h1>
 
-<h2>Item Rarity</h2>
-<?php foreach ($rarities as $rarity) : ?>
-    <h2><?= $this->printHtml($rarity->name); ?></h2>
+<h1><?= $this->printHtml($item->name); ?></h1>
+
+<h2>Recepies</h2>
+
+<?php foreach ($recipes as $recipe) : ?>
+    <h3>#<?= $recipe->id; ?></h3>
+    <p>Cost: <?= $recipe->cost; ?> Time: <?= $recipe->time; ?> Discovered: <?= $recipe->time; ?> - <?= $recipe->time; ?></p>
+    <p>Ingredients:</p>
+    <table>
+        <tr>
+            <th>Item
+            <th>Quantity
+        <?php foreach ($recipe->ingredients as $ingredient) : ?>
+        <tr>
+            <td><?= $this->printHtml($ingredient->item->name); ?>
+            <td>1
+        <?php endforeach; ?>
+    </table>
 <?php endforeach; ?>
 
+<?php if (!empty($usedin)) : ?>
+    <h2>Used in recepies</h2>
 
-<h2>Item Types</h2>
-<?php foreach ($types as $type) : ?>
-    <?php if ($type->releaseDate === null || $type->releaseDate->getTimestamp() < $time) : ?>
-        <h2><?= $this->printHtml($type->name); ?></h2>
-        <p><?= Markdown::parse($type->description); ?></p>
-    <?php endif; ?>
-<?php endforeach; ?>
+    <table>
+        <?php foreach (/*$usedin*/[] as $in) : ?>
+            <tr>
+                <td><?= $this->printHtml($in->for->name); ?>
+        <?php endforeach; ?>
+    </table>
+<?php endif; ?>

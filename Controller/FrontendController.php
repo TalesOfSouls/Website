@@ -275,8 +275,19 @@ final class FrontendController extends ModuleAbstract
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/wiki');
 
-        $pathElements = $request->uri->getPathElements(0);
+        $pathElements = $request->uri->getPathElements();
         array_shift($pathElements);
+
+        // We remove all path elements that are numbers and following path elements
+        $foundNumber = false;
+        foreach ($pathElements as $key => $element) {
+            if ($foundNumber || is_numeric($element)) {
+                unset($pathElements[$key]);
+
+                $foundNumber = true;
+            }
+        }
+
         $path = \implode('_', $pathElements);
 
         $view->data['path'] = $path;
