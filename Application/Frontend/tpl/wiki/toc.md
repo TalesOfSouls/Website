@@ -9,6 +9,7 @@
 * [Raids](/wiki/raid)
 * [Monsters](/wiki/monster)
 * [Tournaments](/wiki/tournament)
+* [Community Content](/wiki/community_content)
 * [Seasons](/wiki/season)
 * [Leaderboards](/wiki/leaderboard)
 * [PvP](/wiki/pvp)
@@ -19,4 +20,4 @@
 * [Pets](/wiki/pet)
 * [Locations](/wiki/location)
 * [Mini Games](/wiki/mini_game)
-* [Auction Hause](/wiki/auction_house)
+* [Auction House](/wiki/auction_house)
