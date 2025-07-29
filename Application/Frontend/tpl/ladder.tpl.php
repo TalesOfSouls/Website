@@ -127,7 +127,7 @@ $time = time();
                 </tr>
             </thead>
             <tbody>
-                <?php for ($i = 1; $i < 21; ++$i) : ?>
+                <?php for ($i = 1; $i < 26; ++$i) : ?>
                 <tr>
                     <td><?= $i; ?></td>
                     <td>Test Player</td>
