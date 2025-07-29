@@ -1,7 +1,7 @@
 * [Races](/wiki/race)
 * [Classes](/wiki/class)
 * [Proficiencies](/wiki/proficiency)
-* [Item](/wiki/item)
+* [Items](/wiki/items)
 * [Skill](/wiki/skill)
 * [Equipment](/wiki/item/equipment)
 * [Quests](/wiki/quest)
