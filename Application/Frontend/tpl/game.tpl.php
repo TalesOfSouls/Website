@@ -10,7 +10,7 @@
             <a class="col-3" href="/map">Map</a>
             <a class="col-3" href="/ladder">Ladder</a>
             <a class="col-3" href="/wiki">Wiki</a>
-            <a class="col-3" href="http://127.0.0.5">Feedback</a>
+            <a class="col-3" href="/feedback">Feedback</a>
         </div>
 
         <div class="flex-row">
@@ -21,7 +21,7 @@
         </div>
 
         <div class="flex-row">
-            <a class="col-3" href="/pet/battle">Mini Games</a>
+            <a class="col-3" href="/recordings">Recordings</a>
             <a class="col-3" href="/pet/battle">Pet Battles</a>
             <a class="col-3" href="/pet/daycare">Pet Day Care</a>
             <a class="col-3" href="/profile/town">Town Management</a>

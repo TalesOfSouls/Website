@@ -305,6 +305,26 @@ final class FrontendController extends ModuleAbstract
         return $view;
     }
 
+    public function recordingListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Recordings';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/recording_list');
+
+        return $view;
+    }
+
+    public function feedbackListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Feedback';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/feedback_list');
+
+        return $view;
+    }
+
     public function buildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $response->data['Content']->head->title .= ' - Builds';
@@ -321,6 +341,46 @@ final class FrontendController extends ModuleAbstract
 
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/build_planner');
+
+        return $view;
+    }
+
+    public function profilePlayerListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Profiles';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_player_list');
+
+        return $view;
+    }
+
+    public function profilePlayerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Profile';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_player');
+
+        return $view;
+    }
+
+    public function profileCharacterListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Characters';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_character_list');
+
+        return $view;
+    }
+
+    public function profileGuildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Guilds';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_guild_list');
 
         return $view;
     }

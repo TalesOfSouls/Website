@@ -94,7 +94,7 @@ $time = time();
             <option>Holdout
             <option>Dodging
             <optgroup label="PvP">
-                <option>Total PvP
+                <option>Any PvP
                 <option>PvP Arena
                 <option>PvP Pet Battles
                 <option>PvP Capture the Flag

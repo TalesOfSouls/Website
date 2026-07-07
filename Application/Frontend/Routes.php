@@ -66,7 +66,7 @@ return [
     ],
     '^/profile/player$' => [
         [
-            'dest' => '\Controller\FrontendController:profilePlayerView',
+            'dest' => '\Controller\FrontendController:profilePlayerListView',
             'verb' => RouteVerb::GET,
         ],
     ],
@@ -78,7 +78,7 @@ return [
     ],
     '^/profile/guild$' => [
         [
-            'dest' => '\Controller\FrontendController:profileGuildView',
+            'dest' => '\Controller\FrontendController:profileGuildListView',
             'verb' => RouteVerb::GET,
         ],
     ],
@@ -88,9 +88,9 @@ return [
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/\d+/character$' => [
+    '^/profile/player/character$' => [
         [
-            'dest' => '\Controller\FrontendController:profileCharacterView',
+            'dest' => '\Controller\FrontendController:profileCharacterListView',
             'verb' => RouteVerb::GET,
         ],
     ],
@@ -142,6 +142,25 @@ return [
             'verb' => RouteVerb::GET,
         ],
     ],
+    '^/recordings' => [
+        [
+            'dest' => '\Controller\FrontendController:recordingListView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/feedback' => [
+        [
+            'dest' => '\Controller\FrontendController:feedbackListView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+    '^/feedback/create' => [
+        [
+            'dest' => '\Controller\FrontendController:feedbackCreateView',
+            'verb' => RouteVerb::GET,
+        ],
+    ],
+
     '^/shop' => [
         [
             'dest' => '\Controller\FrontendController:shopView',
