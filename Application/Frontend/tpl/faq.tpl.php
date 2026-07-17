@@ -8,6 +8,22 @@ use phpOMS\Utils\Parser\Markdown\Markdown;
 </div>
 
 <div id="faq-list">
+    <div class="floater">
+        <select>
+            <option disabled selected>Category
+            <option>Any
+            <option>Game
+            <option>Account
+            <option>Seasons
+            <option>Monetization
+            <option>Release
+            <option>Feedback
+            <option>Development
+        </select>
+
+        <input type="text" name="faq" placeholder="FAQ">
+    </div>
+
     <?php foreach ($this->data['faq'] as $faq) : ?>
     <div class="faq-section">
         <div class="floater">

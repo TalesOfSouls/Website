@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Controller;
 
+use Models\AccountMapper;
+use Models\CharacterMapper;
+use Models\GuildMapper;
 use Models\FaqMapper;
 use phpOMS\Account\PermissionType;
 use phpOMS\Asset\AssetType;
@@ -352,6 +355,8 @@ final class FrontendController extends ModuleAbstract
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/profile_player_list');
 
+        $view->data['profiles'] = AccountMapper::getAll()->executeGetArray();
+
         return $view;
     }
 
@@ -361,6 +366,10 @@ final class FrontendController extends ModuleAbstract
 
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/profile_player');
+
+        $view->data['profile'] = AccountMapper::get()
+            ->where('id', $request->uri->getPathElement(2))
+            ->executeGet();
 
         return $view;
     }
@@ -372,6 +381,22 @@ final class FrontendController extends ModuleAbstract
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/profile_character_list');
 
+        $view->data['profiles'] = CharacterMapper::getAll()->executeGetArray();
+
+        return $view;
+    }
+
+    public function profileCharacterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Character';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_character');
+
+        $view->data['profile'] = CharacterMapper::get()
+            ->where('id', $request->uri->getPathElement(3))
+            ->executeGet();
+
         return $view;
     }
 
@@ -381,6 +406,22 @@ final class FrontendController extends ModuleAbstract
 
         $view = new View($this->app->l11nManager, $request, $response);
         $view->setTemplate('/Application/Frontend/tpl/profile_guild_list');
+
+        $view->data['profiles'] = GuildMapper::getAll()->executeGetArray();
+
+        return $view;
+    }
+
+    public function profileGuildView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->data['Content']->head->title .= ' - Guild';
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/profile_guild');
+
+        $view->data['profile'] = GuildMapper::get()
+            ->where('id', $request->uri->getPathElement(3))
+            ->executeGet();
 
         return $view;
     }

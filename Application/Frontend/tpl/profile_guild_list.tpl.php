@@ -1,3 +1,6 @@
+<?php
+use phpOMS\Uri\UriFactory;
+?>
 <div class="floater">
     <div id="welcome-section">
         <h1>Guild list</h1>
@@ -21,9 +24,17 @@
                 <tr>
                     <th class="wf-100">Guild</th>
                     <th>Server</th>
+                    <th>Members</th>
                 </tr>
             </thead>
             <tbody>
+                <?php foreach ($this->data['profiles'] as $profile) :
+                    if ($profile->id == 1) { continue; } 
+                    $url = UriFactory::build('{/base}/player/profile/' . $profile->id);
+                ?>
+                    <tr data-href="<?= $url; ?>">
+                        <td><a href="<?= $url; ?>"><?= $this->printHtml($profile->name); ?></a>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>

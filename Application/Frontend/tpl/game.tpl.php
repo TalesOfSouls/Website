@@ -28,10 +28,10 @@
         </div>
 
         <div class="flex-row">
-            <a class="col-3" href="/profile/player">Player Profile</a>
-            <a class="col-3" href="/profile/player/character">Character Profile</a>
-            <a class="col-3" href="/profile/pet">Pet Profile</a>
-            <a class="col-3" href="/profile/guild">Guild Profile</a>
+            <a class="col-3" href="/player/profile">Player Profile</a>
+            <a class="col-3" href="/player/character/profile">Character Profile</a>
+            <a class="col-3" href="/pet/profile">Pet Profile</a>
+            <a class="col-3" href="/guild/profile">Guild Profile</a>
         </div>
 
         <div class="flex-row">

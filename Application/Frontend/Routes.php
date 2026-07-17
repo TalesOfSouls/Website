@@ -64,37 +64,37 @@ return [
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/player$' => [
+    '^/player/profile$' => [
         [
             'dest' => '\Controller\FrontendController:profilePlayerListView',
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/player/\d+' => [
+    '^/player/profile/\d+' => [
         [
             'dest' => '\Controller\FrontendController:profilePlayerView',
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/guild$' => [
+    '^/guild/profile$' => [
         [
             'dest' => '\Controller\FrontendController:profileGuildListView',
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/guild/\d+' => [
+    '^/guild/profile/\d+' => [
         [
             'dest' => '\Controller\FrontendController:profileGuildView',
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/player/character$' => [
+    '^/player/character/profile$' => [
         [
             'dest' => '\Controller\FrontendController:profileCharacterListView',
             'verb' => RouteVerb::GET,
         ],
     ],
-    '^/profile/\d+/character/\d+' => [
+    '^/player/character/profile/\d+' => [
         [
             'dest' => '\Controller\FrontendController:profileCharacterView',
             'verb' => RouteVerb::GET,
