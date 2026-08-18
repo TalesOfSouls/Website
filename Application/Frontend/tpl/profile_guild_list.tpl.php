@@ -34,6 +34,8 @@ use phpOMS\Uri\UriFactory;
                 ?>
                     <tr data-href="<?= $url; ?>">
                         <td><a href="<?= $url; ?>"><?= $this->printHtml($profile->name); ?></a>
+                        <td>
+                        <td>
                 <?php endforeach; ?>
             </tbody>
         </table>
