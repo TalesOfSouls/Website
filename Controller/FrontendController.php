@@ -7,8 +7,9 @@ use Models\AccountMapper;
 use Models\CharacterMapper;
 use Models\GuildMapper;
 use Models\FaqMapper;
+use Models\ItemMapper;
+use Models\RecipeMapper;
 use phpOMS\Account\PermissionType;
-use phpOMS\Asset\AssetType;
 use phpOMS\Contract\RenderableInterface;
 use phpOMS\Message\Http\HttpRequest;
 use phpOMS\Message\Http\RequestStatusCode;
@@ -38,456 +39,246 @@ final class FrontendController extends ModuleAbstract
      */
     public static array $dependencies = [];
 
+    /**
+     * Directory containing the news markdown files (data/news/YYYY/YYYY_MM_DD_slug.md)
+     *
+     * @var string
+     * @since 1.0.0
+     */
+    private const NEWS_PATH = __DIR__ . '/../Application/Frontend/data/news';
+
+    /**
+     * Directory containing the legal markdown files
+     *
+     * @var string
+     * @since 1.0.0
+     */
+    private const LEGAL_PATH = __DIR__ . '/../Application/Frontend/data/legal';
+
+    /**
+     * Fallback images for news posts without an image
+     *
+     * @var string[]
+     * @since 1.0.0
+     */
+    private const NEWS_FALLBACK_IMAGES = [
+        '/Application/Frontend/img/hills.jpg',
+        '/Application/Frontend/img/sky.jpg',
+        '/Application/Frontend/img/mountain_side.jpg',
+        '/Application/Frontend/img/dusk.jpg',
+    ];
+
+    /**
+     * Create a simple content view and append a title suffix to the page title
+     *
+     * @param RequestAbstract  $request  Request
+     * @param ResponseAbstract $response Response
+     * @param string           $template Template name (relative to Application/Frontend/tpl)
+     * @param string           $title    Page title suffix
+     *
+     * @return View
+     */
+    private function createView(RequestAbstract $request, ResponseAbstract $response, string $template, string $title = '') : View
+    {
+        if ($title !== '' && isset($response->data['Content']->head)) {
+            $response->data['Content']->head->title .= ' - ' . $title;
+        }
+
+        $view = new View($this->app->l11nManager, $request, $response);
+        $view->setTemplate('/Application/Frontend/tpl/' . $template);
+
+        return $view;
+    }
+
+    /* ======================================================================
+       Home & news
+       ====================================================================== */
+
     public function frontView(RequestAbstract $request, ResponseAbstract $response, $data = null): void
     {
-        $head = $response->data['Content']->head;
-        $head->addAsset(AssetType::CSS, 'Application/Frontend/css/front.css?v=1.0.0');
-
-        $view = $response->data['Content'];
-    }
-
-    public function signupView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
-    {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/signup');
-
-        return $view;
-    }
-
-    public function signupSuccessView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
-    {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/signup_success');
-
-        return $view;
-    }
-
-    public function signupConfirmationView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
-    {
-        $this->app->moduleManager->get('Admin', 'Api')->apiDataChange($request, $response);
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/signup_confirmation');
-
-        return $view;
-    }
-
-    public function signinView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
-    {
-        if ($request->header->account <= 0) {
-            $view = new View($this->app->l11nManager, $request, $response);
-            $view->setTemplate('/Application/Frontend/tpl/signin');
-
-            return $view;
-        }
-
-        $response->data['Content']->setTemplate('/Application/Frontend/tpl/shop-front');
-
-        return $this->shopView($request, $response, $data);
-    }
-
-    public function forgotView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
-    {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/forgot');
-
-        return $view;
-    }
-
-    public function shopView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Shop';
+        /** @var \Application\Frontend\AppView $view */
         $view = $response->data['Content'];
 
-        $items = [];
-        $featured = [];
-
-        $query = <<<SQL
-        SELECT itemmgmt_item.itemmgmt_item_id, itemmgmt_item.itemmgmt_item_no, media.media_file
-        FROM itemmgmt_item
-        JOIN itemmgmt_item_attr ON itemmgmt_item.itemmgmt_item_id = itemmgmt_item_attr.itemmgmt_item_attr_item
-        JOIN itemmgmt_attr_type ON itemmgmt_item_attr.itemmgmt_item_attr_type = itemmgmt_attr_type.itemmgmt_attr_type_id
-        JOIN itemmgmt_attr_value ON itemmgmt_item_attr.itemmgmt_item_attr_value = itemmgmt_attr_value.itemmgmt_attr_value_id
-        JOIN itemmgmt_item_media ON itemmgmt_item.itemmgmt_item_id = itemmgmt_item_media.itemmgmt_item_media_item
-        JOIN media ON itemmgmt_item_media.itemmgmt_item_media_media = media.media_id
-        JOIN media_tag ON media.media_id = media_tag.media_tag_src
-        JOIN tag ON media_tag.media_tag_dst = tag.tag_id
-        WHERE itemmgmt_item.itemmgmt_item_status = 1
-        AND itemmgmt_item.itemmgmt_item_parent IS NULL
-        AND (itemmgmt_attr_type.itemmgmt_attr_type_name = 'shop_front' or itemmgmt_attr_type.itemmgmt_attr_type_name = 'shop_featured')
-        AND itemmgmt_attr_value.itemmgmt_attr_value_valueInt = 1
-        AND tag.tag_name = 'shop_list_image'
-        AND EXISTS (
-            SELECT 1
-            FROM itemmgmt_item_attr AS attr
-            JOIN itemmgmt_attr_type AS attr_type ON attr.itemmgmt_item_attr_type = attr_type.itemmgmt_attr_type_id
-            JOIN itemmgmt_attr_value AS attr_value ON attr.itemmgmt_item_attr_value = attr_value.itemmgmt_attr_value_id
-            WHERE attr.itemmgmt_item_attr_item = itemmgmt_item.itemmgmt_item_id
-                AND attr_type.itemmgmt_attr_type_name = 'shop_item'
-                AND attr_value.itemmgmt_attr_value_valueInt = 1
-        )
-        SQL;
-
-        $files = $this->app->dbPool->get()->con->query($query)->fetchAll();
-
-        foreach ($files as $file) {
-            if (!isset($items[$file['itemmgmt_item_id']])) {
-                $items[$file['itemmgmt_item_id']] = [
-                    'number' => '',
-                    'file_path' => '',
-                    'name1' => '',
-                    'description_short' => '',
-                ];
-            }
-
-            $items[$file['itemmgmt_item_id']]['number'] = $file['itemmgmt_item_no'];
-            $items[$file['itemmgmt_item_id']]['file_path'] = $file['media_file'];
-        }
-
-        $query = <<<SQL
-        SELECT itemmgmt_item.itemmgmt_item_id, itemmgmt_attr_type.itemmgmt_attr_type_name, itemmgmt_item_l11n_type.itemmgmt_item_l11n_type_title, itemmgmt_item_l11n.itemmgmt_item_l11n_description
-        FROM itemmgmt_item
-        join itemmgmt_item_attr on itemmgmt_item.itemmgmt_item_id = itemmgmt_item_attr.itemmgmt_item_attr_item
-        join itemmgmt_attr_type on itemmgmt_item_attr.itemmgmt_item_attr_type = itemmgmt_attr_type.itemmgmt_attr_type_id
-        join itemmgmt_attr_value on itemmgmt_item_attr.itemmgmt_item_attr_value = itemmgmt_attr_value.itemmgmt_attr_value_id
-        join itemmgmt_item_l11n on itemmgmt_item.itemmgmt_item_id = itemmgmt_item_l11n.itemmgmt_item_l11n_item
-        join itemmgmt_item_l11n_type on itemmgmt_item_l11n.itemmgmt_item_l11n_typeref = itemmgmt_item_l11n_type.itemmgmt_item_l11n_type_id
-        where itemmgmt_item.itemmgmt_item_status = 1
-            and itemmgmt_item.itemmgmt_item_parent is null
-            and (itemmgmt_attr_type.itemmgmt_attr_type_name = 'shop_front' or itemmgmt_attr_type.itemmgmt_attr_type_name = 'shop_featured')
-            and itemmgmt_attr_value.itemmgmt_attr_value_valueInt = 1
-            and itemmgmt_item_l11n.itemmgmt_item_l11n_lang = 'en'
-            and itemmgmt_item_l11n_type.itemmgmt_item_l11n_type_title in ('name1', 'description_short')
-            AND EXISTS (
-                SELECT 1
-                FROM itemmgmt_item_attr AS attr
-                JOIN itemmgmt_attr_type AS attr_type ON attr.itemmgmt_item_attr_type = attr_type.itemmgmt_attr_type_id
-                JOIN itemmgmt_attr_value AS attr_value ON attr.itemmgmt_item_attr_value = attr_value.itemmgmt_attr_value_id
-                WHERE attr.itemmgmt_item_attr_item = itemmgmt_item.itemmgmt_item_id
-                AND attr_type.itemmgmt_attr_type_name = 'shop_item'
-                AND attr_value.itemmgmt_attr_value_valueInt = 1
-            )
-        SQL;
-
-        $l11n = $this->app->dbPool->get()->con->query($query)->fetchAll();
-
-        foreach ($l11n as $l11nItem) {
-            if ($l11nItem['itemmgmt_attr_type_name'] === 'shop_featured') {
-                if (!isset($featured[$l11nItem['itemmgmt_item_id']])) {
-                    $featured[$l11nItem['itemmgmt_item_id']] = [
-                        'number' => '',
-                        'file_path' => '',
-                        'name1' => '',
-                        'description_short' => '',
-                    ];
-                }
-
-                $featured[$l11nItem['itemmgmt_item_id']][$l11nItem['itemmgmt_item_l11n_type_title']] = $l11nItem['itemmgmt_item_l11n_description'];
-
-                continue;
-            }
-
-            if (!isset($items[$l11nItem['itemmgmt_item_id']])) {
-                $items[$l11nItem['itemmgmt_item_id']] = [
-                    'number' => '',
-                    'file_path' => '',
-                    'name1' => '',
-                    'description_short' => '',
-                ];
-            }
-
-            $items[$l11nItem['itemmgmt_item_id']][$l11nItem['itemmgmt_item_l11n_type_title']] = $l11nItem['itemmgmt_item_l11n_description'];
-        }
-
-        $view->data['items'] = $items;
-
-        $query = <<<SQL
-        SELECT itemmgmt_item.itemmgmt_item_id, itemmgmt_item.itemmgmt_item_no, media.media_file
-        FROM itemmgmt_item
-        join itemmgmt_item_attr on itemmgmt_item.itemmgmt_item_id = itemmgmt_item_attr.itemmgmt_item_attr_item
-        join itemmgmt_attr_type on itemmgmt_item_attr.itemmgmt_item_attr_type = itemmgmt_attr_type.itemmgmt_attr_type_id
-        join itemmgmt_attr_value on itemmgmt_item_attr.itemmgmt_item_attr_value = itemmgmt_attr_value.itemmgmt_attr_value_id
-        join itemmgmt_item_media on itemmgmt_item.itemmgmt_item_id = itemmgmt_item_media.itemmgmt_item_media_item
-        join media on itemmgmt_item_media.itemmgmt_item_media_media = media.media_id
-        join media_tag on media.media_id = media_tag.media_tag_src
-        join tag on media_tag.media_tag_dst = tag.tag_id
-        where itemmgmt_item.itemmgmt_item_status = 1
-            and itemmgmt_item.itemmgmt_item_parent is null
-            and itemmgmt_attr_type.itemmgmt_attr_type_name = 'shop_featured'
-            and itemmgmt_attr_value.itemmgmt_attr_value_valueInt = 1
-            and tag.tag_name = 'shop_featured_image';
-        SQL;
-
-        $files = $this->app->dbPool->get()->con->query($query)->fetchAll();
-
-        foreach ($files as $file) {
-            if (!isset($featured[$file['itemmgmt_item_id']])) {
-                $featured[$file['itemmgmt_item_id']] = [
-                    'number' => '',
-                    'file_path' => '',
-                    'name1' => '',
-                    'description_short' => '',
-                ];
-            }
-
-            $featured[$file['itemmgmt_item_id']]['number'] = $file['itemmgmt_item_no'];
-            $featured[$file['itemmgmt_item_id']]['file_path'] = $file['media_file'];
-        }
-
-        $view->data['featured'] = \reset($featured);
-
-        return $view;
+        $view->data['news'] = \array_slice($this->getNewsList(), 0, 4);
     }
 
     public function newsView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $response->data['Content']->head->title .= ' - News';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/news');
+        $view = $this->createView($request, $response, 'news', 'News');
+        $view->data['news'] = $this->getNewsList();
 
         return $view;
     }
 
-    public function gameView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function newsArticleView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $response->data['Content']->head->title .= ' - Game';
+        $slug = $request->uri->getPathElement(1);
+        $list = $this->getNewsList();
 
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/game');
+        foreach ($list as $index => $news) {
+            if ($news['slug'] !== $slug) {
+                continue;
+            }
 
-        return $view;
+            $view = $this->createView($request, $response, 'news_article', $news['title']);
+            $view->data['article'] = $news;
+            $view->data['content'] = Markdown::parse($this->getNewsContent($news['file']));
+            $view->data['newer']   = $list[$index - 1] ?? null;
+            $view->data['older']   = $list[$index + 1] ?? null;
+
+            return $view;
+        }
+
+        return $this->createView($request, $response, 'error/404', 'Not found');
     }
 
-    public function faqView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    /**
+     * Get all news posts sorted by date (newest first)
+     *
+     * @return array<int, array{slug:string, file:string, date:\DateTime, title:string, excerpt:string, image:string}>
+     */
+    private function getNewsList() : array
     {
-        $response->data['Content']->head->title .= ' - FAQ';
+        $files = \glob(self::NEWS_PATH . '/*/*.md');
+        if ($files === false) {
+            return [];
+        }
 
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/faq');
+        $list = [];
+        foreach ($files as $file) {
+            $name = \basename($file, '.md');
+            if (\preg_match('/^(\d{4})_(\d{2})_(\d{2})_(.+)$/', $name, $match) !== 1) {
+                continue;
+            }
 
-        $view->data['faq'] = FaqMapper::getAll()->executeGetArray();
+            $raw   = \trim((string) \file_get_contents($file));
+            $title = \ucfirst(\str_replace('_', ' ', $match[4]));
 
-        return $view;
-    }
+            if (\preg_match('/^#\s+(.+)$/m', $raw, $heading) === 1) {
+                $title = \trim($heading[1]);
+            }
 
-    public function wikiView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Wiki';
+            // first real paragraph = excerpt
+            $excerpt = '';
+            foreach (\preg_split('/\R\R+/', $raw) ?: [] as $block) {
+                $block = \trim($block);
+                if ($block === '' || $block[0] === '#' || $block[0] === '!' || $block[0] === '*' || $block[0] === '-') {
+                    continue;
+                }
 
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/wiki');
+                $excerpt = \strip_tags($block);
+                break;
+            }
 
-        $pathElements = $request->uri->getPathElements();
-        array_shift($pathElements);
+            if (\mb_strlen($excerpt) > 220) {
+                $excerpt = \mb_substr($excerpt, 0, 217) . '...';
+            }
 
-        // We remove all path elements that are numbers and following path elements
-        $foundNumber = false;
-        foreach ($pathElements as $key => $element) {
-            if ($foundNumber || is_numeric($element)) {
-                unset($pathElements[$key]);
+            $image = '';
+            if (\preg_match('/!\[[^\]]*\]\(([^)]+)\)/', $raw, $img) === 1) {
+                $image = $this->rewriteNewsPaths($img[1]);
+            }
 
-                $foundNumber = true;
+            $list[] = [
+                'slug'    => \strtolower(\str_replace('_', '-', $name)),
+                'file'    => $file,
+                'date'    => new \DateTime($match[1] . '-' . $match[2] . '-' . $match[3]),
+                'title'   => $title,
+                'excerpt' => $excerpt,
+                'image'   => $image,
+            ];
+        }
+
+        \usort($list, fn (array $a, array $b) : int => $b['date'] <=> $a['date']);
+
+        foreach ($list as $i => $news) {
+            if ($news['image'] === '') {
+                $list[$i]['image'] = self::NEWS_FALLBACK_IMAGES[$i % \count(self::NEWS_FALLBACK_IMAGES)];
             }
         }
 
-        $path = \implode('_', $pathElements);
-
-        $view->data['path'] = $path;
-
-        return $view;
+        return $list;
     }
 
-    public function ladderView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    /**
+     * Load the markdown of a news post without its title (the title is rendered by the template)
+     *
+     * @param string $file News file
+     *
+     * @return string
+     */
+    private function getNewsContent(string $file) : string
     {
-        $response->data['Content']->head->title .= ' - Ladder';
+        $raw = (string) \file_get_contents($file);
+        $raw = \preg_replace('/^#\s+.+$/m', '', $raw, 1) ?? $raw;
 
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/ladder');
-
-        return $view;
+        return $this->rewriteNewsPaths($raw);
     }
 
-    public function recordingListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    /**
+     * News markdown files reference images relative to the markdown file (../img/...).
+     * The website uses <base href="/"> which is why these paths need to be absolute.
+     *
+     * @param string $text Text
+     *
+     * @return string
+     */
+    private function rewriteNewsPaths(string $text) : string
     {
-        $response->data['Content']->head->title .= ' - Recordings';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/recording_list');
-
-        return $view;
+        return \str_replace('](../img/', '](/Application/Frontend/data/news/img/', \str_replace('../img/', '/Application/Frontend/data/news/img/', $text));
     }
 
-    public function feedbackListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    /* ======================================================================
+       Account
+       ====================================================================== */
+
+    public function signupView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
-        $response->data['Content']->head->title .= ' - Feedback';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/feedback_list');
-
-        return $view;
-    }
-
-    public function buildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Builds';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/build_list');
-
-        return $view;
-    }
-
-    public function buildPlannerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Build';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/build_planner');
-
-        return $view;
-    }
-
-    public function profilePlayerListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Profiles';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_player_list');
-
-        $view->data['profiles'] = AccountMapper::getAll()->executeGetArray();
-
-        return $view;
-    }
-
-    public function profilePlayerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Profile';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_player');
-
-        $view->data['profile'] = AccountMapper::get()
-            ->where('id', $request->uri->getPathElement(2))
-            ->executeGet();
-
-        return $view;
-    }
-
-    public function profileCharacterListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Characters';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_character_list');
-
-        $view->data['profiles'] = CharacterMapper::getAll()->executeGetArray();
-
-        return $view;
-    }
-
-    public function profileCharacterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Character';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_character');
-
-        $view->data['profile'] = CharacterMapper::get()
-            ->where('id', $request->uri->getPathElement(3))
-            ->executeGet();
-
-        return $view;
-    }
-
-    public function profileGuildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Guilds';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_guild_list');
-
-        $view->data['profiles'] = GuildMapper::getAll()->executeGetArray();
-
-        return $view;
-    }
-
-    public function profileGuildView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Guild';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/profile_guild');
-
-        $view->data['profile'] = GuildMapper::get()
-            ->where('id', $request->uri->getPathElement(3))
-            ->executeGet();
-
-        return $view;
-    }
-
-    public function auctionHouseView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Ladder';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/auction_house');
-
-        return $view;
-    }
-
-    public function shopItemView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $response->data['Content']->head->title .= ' - Shop';
-
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/shop-item');
-
-        return $view;
-    }
-
-    public function apiOneClickBuy(RequestAbstract $request, ResponseAbstract $response, $data = null): void
-    {
-        if ($request->header->account < 1) {
-            $response->header->status = RequestStatusCode::R_303;
-
-            $referer = $request->header->getReferer();
-            $response->header->set('Location', empty($referer) ? '/' : $referer, true);
-
-            return;
+        // @todo Create the account once the account backend exists
+        if ($request->getRouteVerb() === RouteVerb::SET) {
+            return $this->createView($request, $response, 'signup_success', 'Sign up');
         }
 
-        $response->set('Content', null, true);
-        $response->set($request->uri->__toString(), []);
-
-       $this->app->moduleManager->get('Shop', 'Api')->apiOneClickBuy($request, $response, [
-            'success' => UriFactory::build('{/tld}/{/base}/shop/buy/success') . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel' => UriFactory::build('{/tld}/{/base}/shop')
-        ]);
+        return $this->createView($request, $response, 'signup', 'Sign up');
     }
 
-    public function shopBuySuccessView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function signupSuccessView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/shop-buy-success');
+        return $this->createView($request, $response, 'signup_success', 'Sign up');
+    }
 
-        $bill = $this->app->moduleManager->get('Payment', 'Api')->handlePaymentRequest($request, $response);
+    public function signupConfirmationView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
+    {
+        // @todo Validate the confirmation token once the account backend exists
+        //      (previously: $this->app->moduleManager->get('Admin', 'Api')->apiDataChange($request, $response);)
+        return $this->createView($request, $response, 'signup_confirmation', 'Account confirmed');
+    }
 
-        $view->data['bill'] = $bill;
+    public function signinView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'signin', 'Sign in');
+
+        // @todo Authenticate once the account backend exists
+        $view->data['error'] = $request->getRouteVerb() === RouteVerb::SET
+            ? 'Signing in is not available yet. Accounts will open with the first beta.'
+            : '';
 
         return $view;
     }
 
-    public function contactView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function forgotView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
-        if ($request->getRouteVerb() === RouteVerb::GET) {
-            $view = new View($this->app->l11nManager, $request, $response);
-            $view->setTemplate('/Application/Frontend/tpl/contact');
-        } else {
-            $view = $this->contactMessage($request, $response, $data);
-        }
+        $view = $this->createView($request, $response, 'forgot', 'Forgot password');
+
+        // @todo Send the reset mail once the account backend exists
+        $view->data['sent'] = $request->getRouteVerb() === RouteVerb::SET;
 
         return $view;
+    }
+
+    public function loginView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->signinView($request, $response);
     }
 
     public function profileView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
@@ -524,79 +315,472 @@ final class FrontendController extends ModuleAbstract
         return $view;
     }
 
-    public function imprintView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+    /* ======================================================================
+       Game hub & info pages
+       ====================================================================== */
 
-        $view->data['markdown'] = Markdown::parse('');
+    public function gameView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'game', 'Game');
+    }
+
+    public function faqView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'faq', 'FAQ');
+
+        /** @var \Models\Faq[] $faqs */
+        $faqs = FaqMapper::getAll()->executeGetArray();
+
+        $categories = [];
+        foreach ($faqs as $faq) {
+            if ($faq->category !== '') {
+                $categories[$faq->category] = $faq->category;
+            }
+        }
+
+        \ksort($categories);
+
+        // Server side filtering (works without JavaScript)
+        $category = $request->getDataString('category') ?? '';
+        $search   = \trim($request->getDataString('q') ?? '');
+
+        $faqs = \array_filter($faqs, function ($faq) use ($category, $search) : bool {
+            if ($category !== '' && $faq->category !== $category) {
+                return false;
+            }
+
+            return $search === ''
+                || \stripos($faq->question, $search) !== false
+                || \stripos($faq->answer, $search) !== false;
+        });
+
+        \usort($faqs, fn ($a, $b) : int => $a->order <=> $b->order ?: $a->id <=> $b->id);
+
+        $view->data['faq']        = $faqs;
+        $view->data['categories'] = $categories;
+        $view->data['category']   = $category;
+        $view->data['search']     = $search;
 
         return $view;
     }
 
-    public function loginView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function wikiView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/login');
+        $view = $this->createView($request, $response, 'wiki', 'Wiki');
+
+        $pathElements = $request->uri->getPathElements();
+        \array_shift($pathElements);
+
+        // We remove all path elements that are numbers and following path elements
+        $foundNumber = false;
+        foreach ($pathElements as $key => $element) {
+            if ($foundNumber || \is_numeric($element)) {
+                unset($pathElements[$key]);
+
+                $foundNumber = true;
+            }
+        }
+
+        $path = \strtolower(\implode('_', $pathElements));
+
+        // Only allow simple template names
+        if (\preg_match('/^[a-z_]*$/', $path) !== 1) {
+            $path = '404';
+        }
+
+        $view->data['path'] = $path === '' ? 'index' : $path;
 
         return $view;
     }
 
-    public function privacyView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function mapView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+        return $this->createView($request, $response, 'map', 'World Map');
+    }
 
-        $view->data['markdown'] = Markdown::parse('');
+    public function craftView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'craft', 'Crafting');
+    }
+
+    public function videosView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'videos', 'Videos');
+    }
+
+    public function developmentView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'development', 'Development');
+        $view->data['news'] = \array_slice($this->getNewsList(), 0, 3);
 
         return $view;
     }
 
-    public function termsView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function supportView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+        return $this->createView($request, $response, 'support', 'Support us');
+    }
 
-        $view->data['markdown'] = Markdown::parse('');
+    /* ======================================================================
+       Competitive & community
+       ====================================================================== */
+
+    public function ladderView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'ladder', 'Ladder');
+    }
+
+    public function recordingListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'recording_list', 'Recordings');
+    }
+
+    public function feedbackListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'feedback_list', 'Feedback');
+    }
+
+    public function feedbackCreateView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'feedback_create', 'Feedback');
+
+        // @todo Store the feedback once the feedback table exists
+        $view->data['sent'] = $request->getRouteVerb() === RouteVerb::SET;
 
         return $view;
     }
 
-    public function dpaView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function buildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+        return $this->createView($request, $response, 'build_list', 'Builds');
+    }
 
-        $view->data['markdown'] = Markdown::parse('');
+    public function buildPlannerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'build_planner', 'Build Planner');
+    }
+
+    public function auctionHouseView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'auction_house', 'Auction House');
+        $view->data['category'] = $request->uri->getPathElement(1);
 
         return $view;
     }
 
-    public function cocView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+    /* ======================================================================
+       Profiles
+       ====================================================================== */
 
-        $view->data['markdown'] = Markdown::parse('');
+    public function profilePlayerListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'profile_player_list', 'Players');
+        $view->data['profiles'] = AccountMapper::getAll()->executeGetArray();
+        $view->data['sample']   = $this->getSampleProfiles();
 
         return $view;
     }
 
-    public function claView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    public function profilePlayerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/markdown');
+        $view = $this->createView($request, $response, 'profile_player', 'Player');
 
-        $view->data['markdown'] = Markdown::parse('');
+        $view->data['sample']  = $this->getSampleProfiles();
+        $view->data['profile'] = $this->findProfile(AccountMapper::class, (int) $request->uri->getPathElement(2), $view->data['sample']['players']);
 
         return $view;
+    }
+
+    public function profileCharacterListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'profile_character_list', 'Characters');
+        $view->data['profiles'] = CharacterMapper::getAll()->executeGetArray();
+        $view->data['sample']   = $this->getSampleProfiles();
+
+        return $view;
+    }
+
+    public function profileCharacterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'profile_character', 'Character');
+
+        $view->data['sample']  = $this->getSampleProfiles();
+        $view->data['profile'] = $this->findProfile(CharacterMapper::class, (int) $request->uri->getPathElement(3), $view->data['sample']['characters']);
+
+        return $view;
+    }
+
+    public function profileGuildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'profile_guild_list', 'Guilds');
+        $view->data['profiles'] = GuildMapper::getAll()->executeGetArray();
+        $view->data['sample']   = $this->getSampleProfiles();
+
+        return $view;
+    }
+
+    public function profileGuildView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'profile_guild', 'Guild');
+
+        $view->data['sample']  = $this->getSampleProfiles();
+        $view->data['profile'] = $this->findProfile(GuildMapper::class, (int) $request->uri->getPathElement(2), $view->data['sample']['guilds']);
+
+        return $view;
+    }
+
+    /**
+     * Find a profile model by id.
+     *
+     * The profile models have no Null* counterpart, which is why ::get() would fail for unknown ids.
+     * Falls back to the sample profiles (see data/sample_profiles.php).
+     * Returns a model with id 0 if nothing was found (the templates render a 404 in that case).
+     *
+     * @param string $mapper  Mapper class
+     * @param int    $id      Model id
+     * @param array  $samples Sample profiles of this type (id => data)
+     *
+     * @return object
+     */
+    private function findProfile(string $mapper, int $id, array $samples = []) : object
+    {
+        $result = $id > 0
+            ? $mapper::getAll()->where('id', $id)->executeGetArray()
+            : [];
+
+        if (empty($result)) {
+            $model = $mapper::MODEL;
+            $model = new $model();
+
+            // @todo Remove the sample fallback once real data exists
+            if (isset($samples[$id])) {
+                $model->id   = $id;
+                $model->name = $samples[$id]['name'];
+            }
+
+            return $model;
+        }
+
+        return \reset($result);
+    }
+
+    /**
+     * Sample players, characters and guilds
+     *
+     * @return array{players:array, characters:array, guilds:array}
+     */
+    private function getSampleProfiles() : array
+    {
+        return include __DIR__ . '/../Application/Frontend/data/sample_profiles.php';
+    }
+
+    public function petProfileView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'pet_profile', 'Pets');
+    }
+
+    public function petBattleView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'pet_battle', 'Pet Battles');
+    }
+
+    public function petDaycareView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'pet_daycare', 'Pet Day Care');
+    }
+
+    public function townView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->createView($request, $response, 'town', 'Town Management');
+    }
+
+    /* ======================================================================
+       Database
+       ====================================================================== */
+
+    public function databaseView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'database', 'Database');
+
+        /** @var \Models\Item[] $items */
+        $items  = ItemMapper::getAll()->executeGetArray();
+        $search = \trim($request->getDataString('q') ?? '');
+
+        $items = \array_filter($items, fn ($item) : bool => \trim($item->name) !== '');
+
+        if ($search !== '') {
+            $items = \array_filter($items, fn ($item) : bool => \stripos($item->name, $search) !== false);
+        }
+
+        \usort($items, fn ($a, $b) : int => \strcasecmp($a->name, $b->name));
+
+        $perPage = 50;
+        $pages   = \max(1, (int) \ceil(\count($items) / $perPage));
+        $current = \min($pages, \max(1, $request->getDataInt('page') ?? 1));
+
+        $view->data['items']   = \array_slice($items, ($current - 1) * $perPage, $perPage);
+        $view->data['total']   = \count($items);
+        $view->data['page']    = $current;
+        $view->data['pages']   = $pages;
+        $view->data['search']  = $search;
+
+        return $view;
+    }
+
+    public function databaseItemView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $id   = (int) $request->uri->getPathElement(2);
+        $item = ItemMapper::get()->where('id', $id)->executeGet();
+
+        if ($item->id === 0) {
+            return $this->createView($request, $response, 'error/404', 'Not found');
+        }
+
+        $view = $this->createView($request, $response, 'database_item', $item->name);
+        $view->data['item'] = $item;
+
+        $view->data['recipes'] = RecipeMapper::getAll()
+            ->with('ingredients')
+            ->with('ingredients/item')
+            ->where('for', $id)
+            ->executeGetArray();
+
+        return $view;
+    }
+
+    public function databaseSkillView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'database_skill', 'Skill');
+        $view->data['id'] = (int) $request->uri->getPathElement(2);
+
+        return $view;
+    }
+
+    /* ======================================================================
+       Shop
+       ====================================================================== */
+
+    public function shopView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        // @todo Load the shop items from the item management once the shop backend is available.
+        //      The previous implementation queried the itemmgmt_* tables which don't exist in TalesOfSouls.db
+        return $this->createView($request, $response, 'shop', 'Shop');
+    }
+
+    public function shopItemView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'shop_item', 'Shop');
+        $view->data['item'] = $request->uri->getPathElement(2);
+
+        return $view;
+    }
+
+    public function apiOneClickBuy(RequestAbstract $request, ResponseAbstract $response, $data = null): void
+    {
+        if ($request->header->account < 1) {
+            $response->header->status = RequestStatusCode::R_303;
+
+            $referer = $request->header->getReferer();
+            $response->header->set('Location', empty($referer) ? '/' : $referer, true);
+
+            return;
+        }
+
+        $response->set('Content', null, true);
+        $response->set($request->uri->__toString(), []);
+
+       $this->app->moduleManager->get('Shop', 'Api')->apiOneClickBuy($request, $response, [
+            'success' => UriFactory::build('{/tld}/{/base}/shop/buy/success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel' => UriFactory::build('{/tld}/{/base}/shop')
+        ]);
+    }
+
+    public function shopBuySuccessView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        // @todo Handle the payment response once the payment backend exists
+        //      (previously: $this->app->moduleManager->get('Payment', 'Api')->handlePaymentRequest($request, $response);)
+        return $this->createView($request, $response, 'shop_buy_success', 'Thank you');
+    }
+
+    /* ======================================================================
+       Contact & legal
+       ====================================================================== */
+
+    public function contactView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        if ($request->getRouteVerb() === RouteVerb::GET) {
+            return $this->createView($request, $response, 'contact', 'Contact');
+        }
+
+        return $this->contactMessage($request, $response, $data);
     }
 
     public function contactMessage(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = new View($this->app->l11nManager, $request, $response);
-        $view->setTemplate('/Application/Frontend/tpl/contactConfirmation');
+        // @todo Send/store the contact message
+        return $this->createView($request, $response, 'contact_confirmation', 'Contact');
+    }
+
+    public function imprintView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'imprint', 'Imprint');
+    }
+
+    public function privacyView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'privacy', 'Privacy Policy');
+    }
+
+    public function termsView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'terms', 'Terms of Service');
+    }
+
+    public function dpaView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'dpa', 'Data Processing');
+    }
+
+    public function cocView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'coc', 'Code of Conduct');
+    }
+
+    public function claView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        return $this->legalView($request, $response, 'cla', 'Contributor License Agreement');
+    }
+
+    /**
+     * Render a markdown document from data/legal
+     *
+     * @param RequestAbstract  $request  Request
+     * @param ResponseAbstract $response Response
+     * @param string           $name     Document name
+     * @param string           $title    Page title
+     *
+     * @return RenderableInterface
+     */
+    private function legalView(RequestAbstract $request, ResponseAbstract $response, string $name, string $title) : RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'markdown', $title);
+
+        $file = self::LEGAL_PATH . '/' . $name . '.md';
+        $view->data['markdown'] = \is_file($file)
+            ? Markdown::parse((string) \file_get_contents($file))
+            : '';
 
         return $view;
+    }
+
+    /* ======================================================================
+       Errors
+       ====================================================================== */
+
+    public function error403View(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $response->header->status = RequestStatusCode::R_403;
+
+        return $this->createView($request, $response, 'error/403', 'Access denied');
     }
 }

@@ -2,25 +2,25 @@
 
 use Models\EquipmentTypeMapper;
 use Models\EquipmentSlotMapper;
-use phpOMS\Utils\Parser\Markdown\Markdown;
 
 $types = EquipmentTypeMapper::getAll()->executeGetArray();
 $slots = EquipmentSlotMapper::getAll()->executeGetArray();
-
-$time = time();
 ?>
 <h1>Equipment</h1>
 
+<p>Your character has <?= \count($slots); ?> equipment slots. Every slot accepts a set of equipment types -
+which of these you can use depends on your class. Equipment rolls attributes based on its type, level and
+<a href="/wiki/items">rarity</a>.</p>
+
 <h2>Equipment Slots</h2>
 <?php foreach ($slots as $slot) : ?>
-    <h2><?= $this->printHtml($slot->name); ?></h2>
-    <p><?= '';/*Markdown::parse($slot->description);*/ ?></p>
-
-    <h2>Equipment Types</h2>
-    <?php foreach ($types as $type) : ?>
-        <?php if ($type->slot === $slot->id) : ?>
-            <h2><?= $this->printHtml($type->name); ?></h2>
-            <p><?= '';/*Markdown::parse($type->description);*/ ?></p>
-        <?php endif; ?>
-    <?php endforeach; ?>
+    <h3><?= $this->printHtml($slot->name); ?></h3>
+    <?php
+        $slotTypes = \array_filter($types, fn ($type) => $type->slot === $slot->id);
+    ?>
+    <?php if (empty($slotTypes)) : ?>
+        <p><em>No equipment types published for this slot yet.</em></p>
+    <?php else : ?>
+        <p><?= \implode(', ', \array_map(fn ($type) => $this->printHtml($type->name), $slotTypes)); ?></p>
+    <?php endif; ?>
 <?php endforeach; ?>

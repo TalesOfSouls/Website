@@ -8,6 +8,13 @@ $time = time();
 ?>
 <h1>Classes</h1>
 
+<p>Every character starts with one of five base classes: <strong>Warrior</strong>, <strong>Outcast</strong>,
+<strong>Ranger</strong>, <strong>Caster</strong> or <strong>Summoner</strong>. As you progress you choose a
+specialization that defines your play style, the equipment you can use and your role in a group.</p>
+
+<p>Use the <a href="/build/planner">build planner</a> to theorycraft your character or browse the
+<a href="/build/list">community builds</a> for inspiration.</p>
+
 <?php foreach ($classes as $category) : ?>
     <?php if ($category->parent === null
         && ($category->releaseDate === null || $category->releaseDate->getTimestamp() < $time)) : ?>

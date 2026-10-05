@@ -219,10 +219,6 @@ final class Application
                 && \stripos($routes[0]['dest'], '\Controller\FrontendController:front') !== false
             ) {
                 $pageView->setTemplate('/Application/Frontend/tpl/front');
-            } elseif (isset($routes[0]['dest'])
-                && \stripos($routes[0]['dest'], '\Controller\FrontendController:shopView') !== false
-            ) {
-                $pageView->setTemplate('/Application/Frontend/tpl/shop-front');
             } else {
                 $pageView->setTemplate('/Application/Frontend/tpl/general');
             }
@@ -290,8 +286,8 @@ final class Application
         */
 
         /* Load assets */
-        $head->addAsset(AssetType::CSS, 'Resources/fonts/googleicons/styles.css', ['defer']);
-        $head->addAsset(AssetType::CSS, 'Application/Frontend/css/frontend.css?v=1.0.0', ['defer']);
+        // The .htaccess lets browsers cache css for 31 days, the file time makes sure changes are loaded
+        $head->addAsset(AssetType::CSS, 'Application/Frontend/css/frontend.css?v=' . (\filemtime(__DIR__ . '/css/frontend.css') ?: '1.0.0'), ['defer']);
 
         // Framework
         $head->addAsset(AssetType::JS, 'Application/Frontend/js/frontend.min.js?v=1.0.0', ['nonce' => $scriptSrc, 'type' => 'module', 'defer']);
@@ -308,6 +304,6 @@ final class Application
 
         $css = \preg_replace('!\s+!', ' ', $css);
         $head->setStyle('core', $css ?? '');
-        $head->title = 'Jingga';
+        $head->title = 'Tales of Souls';
     }
 }

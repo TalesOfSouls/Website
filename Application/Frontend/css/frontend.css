@@ -391,3 +391,1205 @@ article {
     color: transparent;
     display: block;
 }
+
+/* ==========================================================================
+   Additional page components
+   Only new classes are styled here. Existing selectors and the framework
+   styles (cssOMS) are intentionally not overwritten.
+   ========================================================================== */
+
+:root {
+    --tos-accent: rgba(0, 187, 255, 1.0);
+    --tos-accent-soft: rgba(0, 187, 255, .1);
+    --tos-highlight: rgb(255, 179, 0);
+    --tos-panel-bg: #140c09;
+    --tos-panel-bg-hover: #241510;
+    --tos-panel-border: rgba(255, 255, 255, .2);
+    --tos-muted: rgba(255, 255, 255, .6);
+}
+
+.muted {
+    color: var(--tos-muted);
+}
+
+.page-section {
+    margin-bottom: 3rem;
+}
+
+/* Make a whole card clickable without JavaScript: the parent needs position: relative */
+.stretched-link::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+}
+
+/* Panel (same look as .main-content) */
+.panel {
+    background: var(--tos-panel-bg);
+    box-shadow: inset 0 0 5px 0 var(--tos-panel-border);
+    padding: 1rem;
+}
+
+.panel + .panel {
+    margin-top: 1rem;
+}
+
+.panel > h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.panel h3 {
+    margin: 1rem 0 .5rem 0;
+}
+
+.panel ul.list, .panel ol.list {
+    list-style: disc;
+    margin: .5rem 0 .5rem 1.5rem;
+    line-height: 1.6rem;
+}
+
+.panel a.text-link, .text-link {
+    color: var(--tos-accent);
+}
+
+.text-link:hover {
+    color: var(--tos-highlight);
+}
+
+/* Notice */
+.notice {
+    border-left: 3px solid var(--tos-highlight);
+    background: rgba(255, 179, 0, .08);
+    padding: .75rem 1rem;
+    margin: 0 0 1rem 0;
+    font-size: .9rem;
+}
+
+.notice.info {
+    border-left-color: var(--tos-accent);
+    background: var(--tos-accent-soft);
+}
+
+/* Cards */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--tos-panel-bg);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1);
+    overflow: hidden;
+}
+
+.card:hover {
+    background: var(--tos-panel-bg-hover);
+}
+
+.card .bg-img {
+    height: 160px;
+    overflow: hidden;
+}
+
+.card .bg-img > img {
+    z-index: 0;
+}
+
+.card-body {
+    padding: 1rem;
+    flex-grow: 1;
+}
+
+.card-body h3 {
+    margin-bottom: .5rem;
+}
+
+.card-body h5 {
+    color: var(--tos-accent);
+    margin-bottom: .25rem;
+}
+
+.card-body p {
+    font-size: .9rem;
+    color: rgba(255, 255, 255, .75);
+}
+
+.card-footer {
+    padding: .5rem 1rem;
+    font-size: .8rem;
+    color: var(--tos-muted);
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+/* Filter forms: the framework gives inputs 100% width, here they share one row */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.filter-bar > input, .filter-bar > select {
+    width: auto;
+    flex: 1 1 160px;
+}
+
+/* Forms (layout only, the inputs use the framework styles) */
+.site-form {
+    max-width: 520px;
+}
+
+.site-form.wide {
+    max-width: none;
+}
+
+.site-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.site-form .form-group.check {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+}
+
+.site-form .form-group.check label {
+    flex: 1 1 auto;
+    display: inline;
+    padding-bottom: 0;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-row > .form-group {
+    flex: 1 1 200px;
+}
+
+.form-hint {
+    flex: 0 0 100%;
+    font-size: .8rem;
+    color: var(--tos-muted);
+    margin-top: .35rem;
+}
+
+.form-links {
+    margin-top: 1.5rem;
+    font-size: .9rem;
+}
+
+.auth-box {
+    max-width: 480px;
+    margin: 0 auto 3rem auto;
+}
+
+.auth-box h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    font-size: .75rem;
+    padding: .15rem .5rem;
+    border: 1px solid rgba(255, 255, 255, .3);
+    white-space: nowrap;
+}
+
+.badge.done { border-color: #3c3; color: #6e6; }
+.badge.closed { border-color: #c33; color: #f77; }
+.badge.progress { border-color: var(--tos-highlight); color: var(--tos-highlight); }
+.badge.planned { border-color: var(--tos-accent); color: var(--tos-accent); }
+
+/* Item rarity colors */
+.rarity-white  { color: #f2f2f2; }
+.rarity-blue   { color: #4aa8ff; }
+.rarity-yellow { color: #f5d742; }
+.rarity-orange { color: #ff9a2e; }
+.rarity-green  { color: #4fd36b; }
+.rarity-purple { color: #b67bff; }
+.rarity-red    { color: #ff4d4d; }
+
+.opaque-area .rarity-white  { color: #666; }
+.opaque-area .rarity-yellow { color: #b59a00; }
+
+/* Key / value lists */
+.stat-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .4rem 1.5rem;
+    font-size: .9rem;
+}
+
+.stat-list dt {
+    color: var(--tos-muted);
+}
+
+.stat-list dd {
+    text-align: right;
+}
+
+.stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.stat-tile {
+    background: var(--tos-panel-bg);
+    box-shadow: inset 0 0 5px 0 var(--tos-panel-border);
+    padding: 1rem;
+}
+
+.stat-tile .value {
+    display: block;
+    font-size: 1.6rem;
+}
+
+.stat-tile .label {
+    display: block;
+    font-size: .8rem;
+    color: var(--tos-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Profile header */
+.profile-head {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.avatar {
+    width: 96px;
+    height: 96px;
+    flex: 0 0 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: var(--tos-panel-bg-hover);
+    box-shadow: inset 0 0 0 1px var(--tos-accent);
+    text-transform: uppercase;
+}
+
+.breadcrumb-link {
+    color: var(--tos-accent);
+}
+
+/* Layouts */
+.layout-split {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.layout-split.right {
+    grid-template-columns: 1fr 320px;
+}
+
+.layout-halves {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.side-menu li a {
+    display: block;
+    padding: .4rem .5rem;
+}
+
+.side-menu li a:hover, .side-menu li a.active {
+    background: var(--tos-panel-bg-hover);
+    color: var(--tos-highlight);
+}
+
+/* Pager */
+.pager {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.pager a, .pager span {
+    padding: .4rem .8rem;
+    background: var(--tos-panel-bg);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15);
+}
+
+.pager a:hover, .pager .current {
+    box-shadow: inset 0 0 0 1px var(--tos-accent);
+    color: var(--tos-accent);
+}
+
+/* Prose (legal pages, news articles) */
+.prose {
+    line-height: 1.6rem;
+}
+
+.prose h1 { margin: 0 0 1rem 0; font-size: 2rem; }
+.prose h2 { margin: 2rem 0 .5rem 0; }
+.prose h3 { margin: 1.5rem 0 .5rem 0; }
+.prose ul, .prose ol { list-style: disc; margin: .5rem 0 .5rem 1.5rem; }
+.prose a { color: var(--tos-accent); }
+.prose img { max-width: 100%; display: block; margin: 1.5rem auto; }
+.prose table { margin: 1rem 0; }
+.prose th { text-align: left; }
+
+.article-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Timeline (roadmap) */
+.timeline {
+    border-left: 2px solid rgba(255, 255, 255, .15);
+    margin-left: .5rem;
+}
+
+.timeline li {
+    position: relative;
+    padding: 0 0 1.5rem 1.5rem;
+}
+
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: .35rem;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    background: #000;
+    border: 2px solid var(--tos-accent);
+    border-radius: 50%;
+}
+
+.timeline li.done::before { background: var(--tos-accent); }
+.timeline li.progress::before { border-color: var(--tos-highlight); }
+
+.timeline .when {
+    font-size: .8rem;
+    color: var(--tos-muted);
+}
+
+/* Progress bar */
+.bar {
+    height: 8px;
+    background: rgba(255, 255, 255, .1);
+    margin: .35rem 0 .75rem 0;
+}
+
+.bar > span {
+    display: block;
+    height: 100%;
+    background: var(--tos-accent);
+}
+
+/* Equipment & skills */
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+}
+
+.equipment-slot {
+    background: rgba(0, 0, 0, .5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15);
+    padding: .5rem;
+    min-height: 64px;
+    font-size: .8rem;
+}
+
+.equipment-slot .slot-name {
+    display: block;
+    color: var(--tos-muted);
+    text-transform: uppercase;
+    font-size: .7rem;
+    letter-spacing: 1px;
+}
+
+.skill-tree {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 96px));
+    gap: 6px;
+}
+
+.skill-node {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: .7rem;
+    background: rgba(0, 0, 0, .5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15);
+}
+
+.skill-node.active {
+    box-shadow: inset 0 0 0 1px var(--tos-accent);
+    color: var(--tos-accent);
+}
+
+/* Map */
+.map-frame {
+    position: relative;
+    height: 520px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--tos-accent);
+}
+
+.map-frame > img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: sepia(.6) saturate(.6) brightness(.7);
+}
+
+.map-marker {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, .75);
+    border: 1px solid var(--tos-highlight);
+    padding: .2rem .6rem;
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+/* Videos */
+.video-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #111;
+    overflow: hidden;
+}
+
+.video-thumb > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .7;
+}
+
+.video-thumb::after {
+    content: "\25B6";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    text-shadow: 0 0 10px #000;
+}
+
+/* Support tiers */
+.tier {
+    text-align: center;
+}
+
+.tier .price {
+    font-size: 2rem;
+    margin: .5rem 0;
+    color: var(--tos-highlight);
+}
+
+.tier ul {
+    text-align: left;
+    list-style: disc;
+    margin: 1rem 0 1rem 1.5rem;
+    font-size: .9rem;
+    line-height: 1.6rem;
+}
+
+/* Error pages */
+.error-code {
+    font-size: 6rem;
+    line-height: 6rem;
+    color: var(--tos-accent);
+}
+
+/* Game hub group headlines and tile texts */
+.game-group {
+    margin: 2rem 0 1rem 0;
+}
+
+.tile-title {
+    display: block;
+    color: #fff;
+    margin-bottom: .35rem;
+}
+
+.tile-text {
+    display: block;
+    font-size: .85rem;
+}
+
+@media only screen and (max-width: 900px) {
+    .layout-split, .layout-split.right, .layout-halves {
+        grid-template-columns: 1fr;
+    }
+
+    .skill-tree {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat-list dd {
+        text-align: left;
+    }
+}
+
+.panel a:not(.button), .card-body p a, .site-form a, .form-links a, .notice a {
+    color: var(--tos-accent);
+}
+
+.panel a:not(.button):hover, .site-form a:hover, .form-links a:hover, .notice a:hover {
+    color: var(--tos-highlight);
+}
+
+.panel .side-menu li a {
+    color: rgba(255, 255, 255, .85);
+}
+
+.panel .side-menu li a:hover, .panel .side-menu li a.active {
+    color: var(--tos-highlight);
+}
+
+.article-meta {
+    color: var(--tos-accent);
+}
+
+
+/* ==========================================================================
+   Theme for the framework components (cssOMS)
+   The framework styles inputs, buttons and tables through CSS variables.
+   They are only defined here - the framework css itself is not changed.
+   ========================================================================== */
+
+:root {
+    --ff: 'Arial', Helvetica, sans-serif;
+    --default-c: #fff;
+    --link-c: rgba(0, 187, 255, 1.0);
+    --box-bg: #140c09;
+    --box-hl: rgba(0, 187, 255, 1.0);
+
+    --ipt-bg: rgba(12, 7, 5, .9);
+    --ipt-bg-active: rgba(0, 0, 0, .75);
+    --ipt-c: #fff;
+    --ipt-c-active: #fff;
+    --ipt-ico-c: rgba(255, 255, 255, .6);
+    --ipt-ico-c-active: #fff;
+    --iborder: rgba(255, 255, 255, .25);
+    --iborder-active: rgba(0, 187, 255, 1.0);
+
+    --btn-bg: rgba(0, 0, 0, .55);
+    --btn-bg-hover: rgba(0, 0, 0, .8);
+    --txt-on-bg-c-2: #fff;
+    --bborder: rgba(0, 187, 255, .8);
+    --bborder2: rgba(255, 255, 255, .1);
+
+    --disabled-bg: #2a2a2a;
+    --disabled-c: #888;
+
+    --thead-bg: #140c09;
+    --thead-c: #fff;
+    --code-bg: #241510;
+    --code-c: rgb(255, 179, 0);
+}
+
+/* The white wiki area needs a light variant of the variables */
+.opaque-area {
+    --default-c: #000;
+    --link-c: #0a6c94;
+    --bborder: #ccc;
+    --thead-bg: #e8e8e8;
+    --thead-c: #000;
+    --trow-bg: #f5f5f5;
+    --ipt-bg: #fff;
+    --ipt-c: #000;
+    --ipt-c-active: #000;
+    --iborder: #bbb;
+}
+
+input::placeholder, textarea::placeholder {
+    font-family: var(--ff);
+}
+
+/* Buttons: same size for <button>, <input type=submit> and <a class="button"> */
+body button, body input[type=submit], body a.button, body label.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 34px;
+    padding: 0 1.25rem;
+    font-size: .9rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .5px;
+    vertical-align: middle;
+    color: #fff;
+}
+
+body button:hover, body input[type=submit]:hover {
+    border-color: var(--tos-highlight);
+}
+
+body .site-form input[type=text], body .site-form input[type=email], body .site-form input[type=password],
+body .site-form input[type=date], body .site-form input[type=number], body .site-form select,
+body .filter-bar input[type=text], body .filter-bar input[type=number], body .filter-bar select,
+body #faq-list form input[type=text], body #faq-list form select, body #wiki .side-nav input[type=text] {
+    box-sizing: border-box;
+    height: 36px;
+    padding: 0 .75rem;
+    font-family: var(--ff);
+    font-size: .9rem;
+    color: var(--ipt-c);
+    background: var(--ipt-bg);
+    border: 1px solid var(--iborder);
+    border-radius: 0;
+}
+
+body .site-form input[type=text], body .site-form input[type=email], body .site-form input[type=password],
+body .site-form input[type=date], body .site-form input[type=number], body .site-form select {
+    width: 100%;
+}
+
+body .site-form textarea {
+    box-sizing: border-box;
+    font-family: var(--ff);
+    font-size: .9rem;
+    color: var(--ipt-c);
+    background: var(--ipt-bg);
+    border: 1px solid var(--iborder);
+    border-radius: 0;
+}
+
+body .site-form input:focus, body .site-form select:focus, body .site-form textarea:focus,
+body .filter-bar input:focus, body .filter-bar select:focus {
+    outline: none;
+    border-color: var(--iborder-active);
+}
+
+body select option, body select optgroup {
+    background: #140c09;
+    color: #fff;
+}
+
+body .site-form textarea {
+    width: 100%;
+    min-height: 10rem;
+    padding: .5rem .75rem;
+    resize: vertical;
+}
+
+/* Intro texts are often placed above the bright header image */
+#welcome-section p {
+    text-shadow: 0 0 6px rgba(0, 0, 0, .9), 0 1px 2px #000;
+}
+
+/* Section titles outside of panels */
+.page-section > h2 {
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 0 6px rgba(0, 0, 0, .9), 0 1px 2px #000;
+}
+
+.page-section > h2 + .card-grid, .card-grid + h2 {
+    margin-top: 0;
+}
+
+/* Grid children must not get the panel spacing */
+.layout-halves > *, .layout-split > * {
+    margin-top: 0 !important;
+}
+
+/* Panels */
+.panel {
+    border-top: 2px solid rgba(0, 187, 255, .6);
+    padding: 1.25rem 1.5rem;
+}
+
+.panel > h2 {
+    font-size: 1.2rem;
+    letter-spacing: .5px;
+    padding-bottom: .6rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.panel p {
+    line-height: 1.5rem;
+}
+
+.panel .content-table {
+    margin: 0;
+}
+
+.panel .content-table thead th {
+    background: transparent;
+    color: var(--tos-muted);
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.panel .content-table tbody tr {
+    background: transparent;
+}
+
+.panel .content-table tbody tr:hover {
+    background: var(--tos-panel-bg-hover);
+}
+
+.panel .content-table tbody:before {
+    display: none;
+}
+
+/* Tables */
+.content-table th, .content-table td {
+    white-space: nowrap;
+}
+
+.content-table td.wrap {
+    white-space: normal;
+}
+
+.content-table td a {
+    color: #fff;
+}
+
+.content-table td a:hover {
+    color: var(--tos-highlight);
+}
+
+.panel .content-table td a {
+    color: var(--tos-accent);
+}
+
+/* Notices are readable on top of the header image */
+.notice {
+    background: rgba(20, 12, 9, .92);
+    box-shadow: inset 0 0 5px 0 var(--tos-panel-border);
+}
+
+.notice.info {
+    background: rgba(20, 12, 9, .92);
+}
+
+/* Stat tiles */
+.stat-tile {
+    border-top: 2px solid rgba(0, 187, 255, .6);
+}
+
+.stat-tile .value {
+    color: #fff;
+    margin-bottom: .25rem;
+}
+
+/* Profile banner (player, character, guild) */
+.profile-banner {
+    position: relative;
+    margin: 0 0 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(90deg, rgba(20, 12, 9, .95) 0%, rgba(20, 12, 9, .8) 60%, rgba(20, 12, 9, .4) 100%);
+    box-shadow: inset 0 0 5px 0 var(--tos-panel-border);
+    border-left: 3px solid var(--tos-accent);
+}
+
+.profile-back {
+    margin: 0 0 1rem 0;
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profile-back a {
+    color: var(--tos-accent);
+}
+
+.profile-back a::before {
+    content: "\2190  ";
+}
+
+.profile-back a:hover {
+    color: var(--tos-highlight);
+}
+
+.profile-name {
+    font-size: 2.4rem;
+    line-height: 2.8rem;
+}
+
+.profile-meta {
+    margin: .4rem 0 0 0;
+    color: rgba(255, 255, 255, .8);
+}
+
+.profile-meta a {
+    color: var(--tos-accent);
+}
+
+.avatar {
+    background: linear-gradient(135deg, #241510, #0c0705);
+    box-shadow: inset 0 0 0 1px var(--tos-accent), 0 0 12px rgba(0, 187, 255, .25);
+    color: var(--tos-accent);
+    font-weight: bold;
+}
+
+/* Cards */
+.card {
+    border-top: 2px solid transparent;
+}
+
+.card:hover {
+    border-top-color: var(--tos-highlight);
+}
+
+.card-body h3 {
+    font-size: 1.1rem;
+}
+
+.card-footer {
+    color: var(--tos-highlight);
+    font-size: .9rem;
+}
+
+/* Auth & forms */
+.auth-box {
+    margin-top: 1rem;
+    padding: 2rem;
+}
+
+.site-form .form-group label {
+    color: rgba(255, 255, 255, .85);
+}
+
+.site-form button + .button, .filter-bar button + .button {
+    margin-left: .5rem;
+}
+
+/* Side menu */
+.side-menu li a {
+    border-left: 2px solid transparent;
+}
+
+.side-menu li a:hover, .side-menu li a.active {
+    border-left-color: var(--tos-highlight);
+}
+
+/* Timeline headlines */
+.timeline h4 {
+    font-size: 1rem;
+    margin: .25rem 0;
+}
+
+.timeline p {
+    margin: 0;
+    color: var(--tos-muted);
+}
+
+@media only screen and (max-width: 900px) {
+    .profile-name {
+        font-size: 1.8rem;
+        line-height: 2.2rem;
+    }
+
+    .profile-head {
+        align-items: flex-start;
+    }
+
+    .avatar {
+        width: 64px;
+        height: 64px;
+        flex-basis: 64px;
+        font-size: 1.8rem;
+    }
+}
+
+/* Required fields: only show the error color after the user interacted with the field */
+body input:invalid, body textarea:invalid, body select:invalid {
+    border-color: var(--iborder) !important;
+}
+
+body input:focus:invalid, body textarea:focus:invalid {
+    border-color: var(--iborder-active) !important;
+}
+
+body input:user-invalid, body textarea:user-invalid {
+    border-color: #e05555 !important;
+}
+
+/* The framework removes the native checkbox look (appearance: none) */
+body input[type=checkbox], body input[type=radio] {
+    appearance: auto;
+    accent-color: rgb(0, 187, 255);
+    width: 16px;
+    height: 16px;
+    margin: 1px 8px 0 0;
+    flex: 0 0 16px;
+}
+
+/* Spacing inside forms (the framework adds a top margin to the element after a .form-group) */
+.site-form .form-group + *, .form-row > .form-group + .form-group {
+    margin-top: 0;
+}
+
+.site-form .form-row {
+    margin-bottom: 0;
+}
+
+/* Prevent wide tables from stretching the grid columns */
+.layout-split > *, .layout-halves > * {
+    min-width: 0;
+}
+
+@media only screen and (max-width: 900px) {
+    .panel .content-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* FAQ: only the question is shown, the answer opens on click (<details>, no JavaScript) */
+.faq-section .faq-details {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.faq-details > summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.faq-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-details > summary h3 {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.faq-details > summary::after {
+    content: "+";
+    flex: 0 0 auto;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--tos-accent);
+}
+
+.faq-details[open] > summary::after {
+    content: "\2212";
+}
+
+.faq-details > summary:hover h3 {
+    color: var(--tos-highlight);
+}
+
+.faq-details > article {
+    margin-top: .75rem;
+    padding: .75rem 0 0 0;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.faq-details .faq-date {
+    font-size: .8rem;
+    color: var(--tos-muted);
+}
+
+/* ==========================================================================
+   Page titles: less space between title and content
+   (the front page keeps its large intro section)
+   ========================================================================== */
+
+#welcome-section:not(:has(+ #news-section)) {
+    margin-bottom: 2rem;
+}
+
+#welcome-section .article-meta {
+    margin: 0 0 .25rem 0;
+    font-size: .85rem;
+    color: rgba(255, 255, 255, .8);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
+}
+
+#welcome-section .article-meta a {
+    color: rgba(255, 255, 255, .8);
+    text-shadow: none;
+}
+
+#welcome-section .article-meta a:hover {
+    color: var(--tos-highlight);
+}
+
+/* News article: date small below the title */
+#welcome-section .article-date {
+    margin: .5rem 0 0 0;
+    font-size: .9rem;
+    color: #fff;
+    text-shadow: 0 0 4px rgba(0, 0, 0, .9), 0 1px 2px #000;
+}
+
+/* News list: highlight the title on hover */
+.news-section h3 {
+    transition: color .15s;
+}
+
+.news-section:hover h3 {
+    color: var(--tos-highlight);
+}
+
+/* ==========================================================================
+   Game page tiles: dark boxes with a blue top border
+   ========================================================================== */
+
+#game-list .col-3 {
+    background: var(--tos-panel-bg);
+    box-shadow: inset 0 0 5px 0 var(--tos-panel-border);
+    border-top: 2px solid rgba(0, 187, 255, .6);
+    color: rgba(255, 255, 255, .85);
+    padding: 1rem 1.25rem;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+#game-list .col-3:hover {
+    background: var(--tos-panel-bg-hover);
+    border-top-color: var(--tos-highlight);
+    color: var(--tos-highlight);
+}
+
+/* ==========================================================================
+   Wiki
+   ========================================================================== */
+
+.wiki-nav {
+    padding: 1rem;
+}
+
+.wiki-search {
+    margin-bottom: .75rem;
+}
+
+body .wiki-search input[type=text] {
+    box-sizing: border-box;
+    width: 100%;
+    height: 34px;
+    padding: 0 .75rem;
+    font-family: var(--ff);
+    font-size: .9rem;
+    color: var(--ipt-c);
+    background: var(--ipt-bg);
+    border: 1px solid var(--iborder);
+    border-radius: 0;
+}
+
+.wiki-nav .side-menu li a {
+    padding: .3rem .5rem;
+    font-size: .9rem;
+}
+
+.wiki-article {
+    font-size: .95rem;
+    line-height: 1.6rem;
+    color: rgba(255, 255, 255, .88);
+    background: var(--tos-panel-bg);
+}
+
+.wiki-article h1 {
+    font-size: 1.8rem;
+    margin: 0 0 1rem 0;
+    padding-bottom: .6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.wiki-article h2 {
+    font-size: 1.3rem;
+}
+
+.wiki-article h3 {
+    font-size: 1.1rem;
+}
+
+.wiki-article p {
+    line-height: 1.6rem;
+}
+
+.wiki-article a {
+    color: var(--tos-accent);
+    border-bottom: none;
+}
+
+.wiki-article a:hover {
+    color: var(--tos-highlight);
+}
+
+.wiki-article ul, .wiki-article ol {
+    list-style: disc;
+    margin: .5rem 0 .5rem 1.5rem;
+    line-height: 1.6rem;
+}
+
+.wiki-article table {
+    width: 100%;
+    min-width: 0;
+    margin: 1rem 0;
+    border-collapse: collapse;
+    border: none;
+}
+
+.wiki-article table th, .wiki-article table td {
+    padding: .4rem .75rem;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.wiki-article table th {
+    background: transparent;
+    color: var(--tos-muted);
+    font-size: .8rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.wiki-article table tr:nth-child(2n) td {
+    background: transparent;
+}
+
+.wiki-article table tbody tr:hover td {
+    background: var(--tos-panel-bg-hover);
+}
+
+.side-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}

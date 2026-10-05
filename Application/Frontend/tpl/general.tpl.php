@@ -75,7 +75,7 @@ $dispatch = $this->data['dispatch'] ?? [];
     }
 
     if ($c === 0) {
-        include __DIR__ . '/Error/404.tpl.php';
+        include __DIR__ . '/error/404.tpl.php';
     }
 ?>
 </main>

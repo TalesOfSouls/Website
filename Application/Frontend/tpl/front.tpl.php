@@ -62,52 +62,27 @@ $dispatch = $this->data['dispatch'] ?? [];
     <div class="floater">
         <div id="welcome-section">
             <h1>Tales of Souls Development</h1>
-            <p>Follow our development progress through our news posts, on our discord or live streams. If you would like to you can also support us on patreon.</p>
-            <p><a class="button" href="">Discord</a><a class="button featured" href="">Patreon</a></p>
+            <p>Tales of Souls is an MMORPG in development: a hand-crafted world, a class system with dozens of
+            specializations and an economy that is driven by its players. Follow our progress through our news posts,
+            on Discord or on our live streams. If you would like to, you can also support us on Patreon.</p>
+            <p><a class="button" href="">Discord</a><a class="button featured" href="/patreon">Patreon</a></p>
         </div>
 
         <div id="news-section">
-            <h2>Latest<a href="more">more</a></h2>
+            <h2>Latest<a href="/news">more</a></h2>
             <div class="flex-row">
+                <?php foreach ($this->data['news'] ?? [] as $news) : ?>
                 <div class="col-3">
                     <div class="bg-img">
-                        <img src="/Application/Frontend/img/hills.jpg">
+                        <img src="<?= $this->printHtml($news['image']); ?>">
                     </div>
                     <div>
-                        <h5>Date</h5>
-                        <h3></h3>
+                        <h5><?= $news['date']->format('Y-m-d'); ?></h5>
+                        <h3><?= $this->printHtml($news['title']); ?></h3>
+                        <a class="stretched-link" href="/news/<?= $this->printHtml($news['slug']); ?>" aria-label="<?= $this->printHtml($news['title']); ?>"></a>
                     </div>
                 </div>
-
-                <div class="col-3">
-                    <div class="bg-img">
-                        <img src="/Application/Frontend/img/sky.jpg">
-                    </div>
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
-
-                <div class="col-3">
-                    <div class="bg-img">
-                        <img src="/Application/Frontend/img/mountain_side.jpg">
-                    </div>
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
-
-                <div class="col-3">
-                    <div class="bg-img">
-                        <img src="/Application/Frontend/img/dusk.jpg">
-                    </div>
-                    <div>
-                        <h5>Date</h5>
-                        <h3></h3>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -118,8 +93,10 @@ $dispatch = $this->data['dispatch'] ?? [];
         <div class="floater">
             <h4></h4>
             <h1>Races</h1>
-            <p>Find out more about the races in Tales of Souls, their history, affiliations and design.</p>
-            <p><a class="button" href="">MORE</a></p>
+            <p>From the stubborn dwarves of the deep halls to the elves of moon and frost, the nomads of the
+            sea and the cursed bloodlines of the Styx - discover the races of Tales of Souls, their history,
+            affiliations and design.</p>
+            <p><a class="button" href="/wiki/race">MORE</a></p>
         </div>
     </div>
     <div class="front-section front-section-b">
@@ -129,8 +106,9 @@ $dispatch = $this->data['dispatch'] ?? [];
         <div class="floater">
             <h4></h4>
             <h1>Classes</h1>
-            <p>Learn more about the different classes, their strengths weaknesses and design.</p>
-            <p><a class="button" href="">MORE</a></p>
+            <p>Five base classes - Warrior, Outcast, Ranger, Caster and Summoner - branch into more than twenty
+            specializations. Learn about their strengths, weaknesses and the ideas behind their design.</p>
+            <p><a class="button" href="/wiki/class">MORE</a></p>
         </div>
     </div>
     <div class="front-section front-section-a">
@@ -140,8 +118,9 @@ $dispatch = $this->data['dispatch'] ?? [];
         <div class="floater">
             <h4></h4>
             <h1>Items</h1>
-            <p>A vast amount of items await you with many unique fighting styles and designs.</p>
-            <p><a class="button" href="">MORE</a></p>
+            <p>Over a thousand items await you - from humble pumpkin soup to legendary weapons. Seven rarities,
+            fourteen equipment slots and a deep crafting system enable many unique fighting styles and designs.</p>
+            <p><a class="button" href="/wiki/items">MORE</a></p>
         </div>
     </div>
     <div class="front-section front-section-b">
@@ -151,8 +130,9 @@ $dispatch = $this->data['dispatch'] ?? [];
         <div class="floater">
             <h4></h4>
             <h1>Programming</h1>
-            <p>;laksjdfka sdfkla jdfkajdsfakjwejioa djfoiasjdfklasdjf iwejfijakghasjd fksadf</p>
-            <p><a class="button" href="">MORE</a></p>
+            <p>We are building our own engine from the ground up. Read about our technical decisions, see the
+            roadmap and follow along as the game takes shape - one render loop at a time.</p>
+            <p><a class="button" href="/development">MORE</a></p>
         </div>
     </div>
 </main>

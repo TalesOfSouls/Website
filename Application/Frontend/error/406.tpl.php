@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="/">
+    <title>Tales of Souls - 406</title>
+    <link rel="stylesheet" href="Application/Frontend/css/frontend-small.css">
+    <link rel="stylesheet" href="Application/Frontend/css/frontend.css">
+</head>
+<body>
+<?php include __DIR__ . '/../tpl/header.php'; ?>
+<main>
+    <div class="floater">
+        <div id="welcome-section">
+            <span class="error-code">406</span>
+            <h1>Not acceptable</h1>
+            <p>The requested content type cannot be provided by this server.</p>
+            <p><a class="button featured" href="/">Try again</a></p>
+        </div>
+    </div>
+</main>
+<?php include __DIR__ . '/../tpl/footer.php'; ?>
+</body>
+</html>

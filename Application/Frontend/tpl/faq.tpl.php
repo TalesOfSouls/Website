@@ -1,5 +1,11 @@
 <?php
 use phpOMS\Utils\Parser\Markdown\Markdown;
+
+/** @var \phpOMS\Views\View $this */
+$faqs       = $this->data['faq'] ?? [];
+$categories = $this->data['categories'] ?? [];
+$current    = $this->data['category'] ?? '';
+$search     = $this->data['search'] ?? '';
 ?>
 <div class="floater">
     <div id="welcome-section">
@@ -8,31 +14,38 @@ use phpOMS\Utils\Parser\Markdown\Markdown;
 </div>
 
 <div id="faq-list">
-    <div class="floater">
-        <select>
-            <option disabled selected>Category
-            <option>Any
-            <option>Game
-            <option>Account
-            <option>Seasons
-            <option>Monetization
-            <option>Release
-            <option>Feedback
-            <option>Development
+    <form class="floater filter-bar" method="GET" action="/faq">
+        <select name="category">
+            <option value=""<?= $current === '' ? ' selected' : ''; ?>>Any category
+            <?php foreach ($categories as $category) : ?>
+            <option value="<?= $this->printHtml($category); ?>"<?= $current === $category ? ' selected' : ''; ?>><?= $this->printHtml($category); ?>
+            <?php endforeach; ?>
         </select>
 
-        <input type="text" name="faq" placeholder="FAQ">
-    </div>
+        <input type="text" name="q" placeholder="FAQ" value="<?= $this->printHtml($search); ?>">
 
-    <?php foreach ($this->data['faq'] as $faq) : ?>
+        <button type="submit">Search</button>
+    </form>
+
+    <?php foreach ($faqs as $faq) : ?>
     <div class="faq-section">
         <div class="floater">
-            <article>
-                <h5><?= $faq->datetime->format('Y-m-d'); ?></h5>
-                <h3><?= $this->printHtml($faq->question); ?></h3>
-                <p><?= Markdown::parse($faq->answer); ?></p>
-            </article>
+            <details class="faq-details">
+                <summary><h3><?= $this->printHtml($faq->question); ?></h3></summary>
+                <article>
+                    <?= Markdown::parse($faq->answer); ?>
+                    <p class="faq-date"><?= $this->printHtml($faq->category); ?> &middot; <?= $faq->datetime->format('Y-m-d'); ?></p>
+                </article>
+            </details>
         </div>
     </div>
     <?php endforeach; ?>
+
+    <?php if (empty($faqs)) : ?>
+    <div class="faq-section">
+        <div class="floater">
+            <p>No questions match your search.</p>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>

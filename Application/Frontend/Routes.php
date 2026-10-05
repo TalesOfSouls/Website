@@ -1,227 +1,110 @@
 <?php
+/**
+ * Frontend routes
+ *
+ * Every pattern is anchored at the end with an optional query string because the router
+ * matches against the route including the query (e.g. "/faq?category=Game").
+ * Without the end anchor "/feedback" would also match "/feedback/create" and both views
+ * would be rendered on the same page.
+ */
+declare(strict_types=1);
 
-use phpOMS\Account\PermissionType;
 use phpOMS\Router\RouteVerb;
 
-return [
-    '^/*$' => [
-        [
-            'dest' => '\Controller\FrontendController:frontView',
-            'verb' => RouteVerb::GET,
-        ],
+/**
+ * Short helper for simple GET pages handled by the FrontendController.
+ *
+ * @param string $action Controller method name
+ * @param int    $verb   Route verb
+ *
+ * @return array
+ */
+$page = static fn (string $action, int $verb = RouteVerb::GET) : array => [
+    [
+        'dest' => '\Controller\FrontendController:' . $action,
+        'verb' => $verb,
     ],
-    '^/signup' => [
-        [
-            'dest' => '\Controller\FrontendController:signupView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/signup/success' => [
-        [
-            'dest' => '\Controller\FrontendController:signupSuccessView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/signup/confirmation.*' => [
-        [
-            'dest' => '\Controller\FrontendController:signupConfirmationView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/signin' => [
-        [
-            'dest' => '\Controller\FrontendController:signinView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/forgot' => [
-        [
-            'dest' => '\Controller\FrontendController:forgotView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/news' => [
-        [
-            'dest' => '\Controller\FrontendController:newsView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/game' => [
-        [
-            'dest' => '\Controller\FrontendController:gameView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/faq' => [
-        [
-            'dest' => '\Controller\FrontendController:faqView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/wiki' => [
-        [
-            'dest' => '\Controller\FrontendController:wikiView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/player/profile$' => [
-        [
-            'dest' => '\Controller\FrontendController:profilePlayerListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/player/profile/\d+' => [
-        [
-            'dest' => '\Controller\FrontendController:profilePlayerView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/guild/profile$' => [
-        [
-            'dest' => '\Controller\FrontendController:profileGuildListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/guild/profile/\d+' => [
-        [
-            'dest' => '\Controller\FrontendController:profileGuildView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/player/character/profile$' => [
-        [
-            'dest' => '\Controller\FrontendController:profileCharacterListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/player/character/profile/\d+' => [
-        [
-            'dest' => '\Controller\FrontendController:profileCharacterView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/database$' => [
-        [
-            'dest' => '\Controller\FrontendController:databaseView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/database/item/\d+$' => [
-        [
-            'dest' => '\Controller\FrontendController:databaseItemView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/database/skill/\d+$' => [
-        [
-            'dest' => '\Controller\FrontendController:databaseSkillView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/ladder' => [
-        [
-            'dest' => '\Controller\FrontendController:ladderView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/build/list' => [
-        [
-            'dest' => '\Controller\FrontendController:buildListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/build/planner' => [
-        [
-            'dest' => '\Controller\FrontendController:buildPlannerView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/auction' => [
-        [
-            'dest' => '\Controller\FrontendController:auctionHouseView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/recordings' => [
-        [
-            'dest' => '\Controller\FrontendController:recordingListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/feedback' => [
-        [
-            'dest' => '\Controller\FrontendController:feedbackListView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/feedback/create' => [
-        [
-            'dest' => '\Controller\FrontendController:feedbackCreateView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
+];
 
-    '^/shop' => [
-        [
-            'dest' => '\Controller\FrontendController:shopView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/shop/item.*' => [
-        [
-            'dest' => '\Controller\FrontendController:shopItemView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
+// optional query string + end of route
+$q = '(\?.*)?$';
+
+return [
+    // Home
+    '^/*' . $q => $page('frontView'),
+
+    // Account
+    '^/signup' . $q                   => $page('signupView', RouteVerb::GET | RouteVerb::SET),
+    '^/signup/success' . $q           => $page('signupSuccessView'),
+    '^/signup/confirmation' . $q      => $page('signupConfirmationView'),
+    '^/signin' . $q                   => $page('signinView', RouteVerb::GET | RouteVerb::SET),
+    '^/forgot' . $q                   => $page('forgotView', RouteVerb::GET | RouteVerb::SET),
+
+    // News
+    '^/news' . $q                     => $page('newsView'),
+    '^/news/[a-z0-9_\-]+' . $q        => $page('newsArticleView'),
+
+    // Game hub
+    '^/game' . $q                     => $page('gameView'),
+    '^/faq' . $q                      => $page('faqView'),
+    '^/wiki(/.*)?$'                   => $page('wikiView'),
+    '^/map' . $q                      => $page('mapView'),
+    '^/craft' . $q                    => $page('craftView'),
+    '^/videos' . $q                   => $page('videosView'),
+    '^/development' . $q              => $page('developmentView'),
+    '^/patreon' . $q                  => $page('supportView'),
+    '^/support' . $q                  => $page('supportView'),
+
+    // Profiles
+    '^/player/profile' . $q                   => $page('profilePlayerListView'),
+    '^/player/profile/\d+' . $q               => $page('profilePlayerView'),
+    '^/player/character/profile' . $q         => $page('profileCharacterListView'),
+    '^/player/character/profile/\d+' . $q     => $page('profileCharacterView'),
+    '^/guild/profile' . $q                    => $page('profileGuildListView'),
+    '^/guild/profile/\d+' . $q                => $page('profileGuildView'),
+    '^/pet/profile' . $q                      => $page('petProfileView'),
+    '^/profile/town' . $q                     => $page('townView'),
+
+    // Pets
+    '^/pet/battle' . $q               => $page('petBattleView'),
+    '^/pet/daycare' . $q              => $page('petDaycareView'),
+
+    // Database
+    '^/database' . $q                 => $page('databaseView'),
+    '^/database/item/\d+' . $q        => $page('databaseItemView'),
+    '^/database/skill/\d+' . $q       => $page('databaseSkillView'),
+
+    // Competitive & community
+    '^/ladder' . $q                   => $page('ladderView'),
+    '^/build/list' . $q               => $page('buildListView'),
+    '^/build/planner' . $q            => $page('buildPlannerView'),
+    '^/auction(/[a-z_]+)?' . $q       => $page('auctionHouseView'),
+    '^/recordings' . $q               => $page('recordingListView'),
+    '^/feedback' . $q                 => $page('feedbackListView'),
+    '^/feedback/create' . $q          => $page('feedbackCreateView', RouteVerb::GET | RouteVerb::SET),
+
+    // Shop
+    '^/shop' . $q                     => $page('shopView'),
+    '^/shop/item/[a-z0-9_\-]+' . $q   => $page('shopItemView'),
     '^/shop/buy/oneclick.*' => [
         [
-            'dest'       => '\Controller\FrontendController:apiOneClickBuy',
-            'verb'       => RouteVerb::GET,
-            'active'     => true,
-        ],
-    ],
-    '^/shop/buy/success.*' => [
-        [
-            'dest' => '\Controller\FrontendController:shopBuySuccessView',
-            'verb' => RouteVerb::GET,
-            /* @todo not working because after the redirect the session is lost */
-            /*
+            'dest'   => '\Controller\FrontendController:apiOneClickBuy',
+            'verb'   => RouteVerb::GET,
             'active' => true,
-            'permission' => [
-                'type'   => PermissionType::READ,
-                'state'  => PermissionCategory::PROFILE,
-            ],
-            */
         ],
     ],
-    '^/contact' => [
-        [
-            'dest' => '\Controller\FrontendController:contactView',
-            'verb' => RouteVerb::GET | RouteVerb::SET,
-        ],
-    ],
-    '^/imprint' => [
-        [
-            'dest' => '\Controller\FrontendController:imprintView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/privacy' => [
-        [
-            'dest' => '\Controller\FrontendController:privacyView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/terms' => [
-        [
-            'dest' => '\Controller\FrontendController:termsView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
-    '^/dpa' => [
-        [
-            'dest' => '\Controller\FrontendController:dpaView',
-            'verb' => RouteVerb::GET,
-        ],
-    ],
+    '^/shop/buy/success' . $q         => $page('shopBuySuccessView'),
+
+    // Contact & legal
+    '^/contact' . $q                  => $page('contactView', RouteVerb::GET | RouteVerb::SET),
+    '^/imprint' . $q                  => $page('imprintView'),
+    '^/privacy' . $q                  => $page('privacyView'),
+    '^/terms' . $q                    => $page('termsView'),
+    '^/dpa' . $q                      => $page('dpaView'),
+    '^/conduct' . $q                  => $page('cocView'),
+    '^/cla' . $q                      => $page('claView'),
+
+    // Errors (used by Application::routeDispatching)
+    '^/frontend/e403' . $q            => $page('error403View'),
+    '^/frontend/signup' . $q          => $page('signinView'),
 ];

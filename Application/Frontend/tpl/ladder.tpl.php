@@ -1,4 +1,11 @@
 <?php
+// Link sample names to the sample character profiles
+$sampleCharacters = [];
+foreach ((include __DIR__ . '/../data/sample_profiles.php')['characters'] as $sampleId => $sampleCharacter) {
+    $sampleCharacters[$sampleCharacter['name']] = $sampleId;
+}
+$characterUrl = fn (string $name) : string => '/player/character/profile' . (isset($sampleCharacters[$name]) ? '/' . $sampleCharacters[$name] : '');
+
 use Models\PlayerClassMapper;
 
 $classes = PlayerClassMapper::getAll()->executeGetArray();
@@ -11,11 +18,11 @@ $time = time();
     </div>
 </div>
 
-<div id="ladder">
-    <div class="floater">
+<div id="ladder" class="page-section">
+    <form class="floater filter-bar" method="GET" action="/ladder">
         <input type="text" name="player" placeholder="Player">
 
-        <select>
+        <select name="time">
             <option disabled selected>Time
             <option>All Time
             <option>Seasonal
@@ -23,11 +30,11 @@ $time = time();
 
         <input type="text" name="server" list="server_names" placeholder="Server">
         <datalist id="server_names">
-            <option value="Boston">
-            <option value="Cambridge">
+            <option value="Test Server 1">
+            <option value="Test Server 2">
         </datalist>
 
-        <select>
+        <select name="mode">
             <option disabled selected>Mode
             <option>Overall
             <optgroup label="HC">
@@ -48,7 +55,7 @@ $time = time();
             </optgroup>
         </select>
 
-        <select>
+        <select name="class">
             <option disabled selected>Class
             <option>Any
             <?php foreach ($classes as $category) : ?>
@@ -66,14 +73,14 @@ $time = time();
             <?php endforeach; ?>
         </select>
 
-        <select>
+        <select name="category">
             <option disabled selected>Category
             <option>Player
             <option>Character
             <option>Guild
         </select>
 
-        <select>
+        <select name="type">
             <option disabled selected>Type
             <option>Level
             <option>Speedrun
@@ -112,9 +119,12 @@ $time = time();
                 <option>Healing
             </optgroup>
         </select>
-    </div>
+
+        <button type="submit">Filter</button>
+    </form>
 
     <div class="floater">
+        <div class="notice info">Season 0 (preview) &middot; The ladder shows sample data until the first beta starts.</div>
         <table class="content-table">
             <thead>
                 <tr>
@@ -127,16 +137,22 @@ $time = time();
                 </tr>
             </thead>
             <tbody>
-                <?php for ($i = 1; $i < 26; ++$i) : ?>
+                <?php
+                $samplePlayers = ['Aldric', 'Mirelle', 'Thorgar', 'Sylvara', 'Kaelen', 'Brannoc', 'Ysolde', 'Corvin', 'Elowen', 'Draven',
+                    'Isolde', 'Fenrik', 'Lyra', 'Garrick', 'Nimue', 'Torvald', 'Seraphine', 'Rurik', 'Maelis', 'Oswin',
+                    'Vespera', 'Hadrian', 'Talia', 'Ulric', 'Wren'];
+                $sampleClasses = ['Paladin', 'Mage', 'Berserker', 'Druid', 'Assassin', 'Necromancer', 'Priest', 'Hunter', 'Knight', 'Shaman'];
+                $sampleModes   = ['SC', 'HC', 'SCSF', 'HCSSF', 'SCGF'];
+                foreach ($samplePlayers as $i => $player) : ?>
                 <tr>
-                    <td><?= $i; ?></td>
-                    <td>Test Player</td>
-                    <td>Class</td>
-                    <td>Mode</td>
-                    <td>Server</td>
-                    <td>Level</td>
+                    <td><?= $i + 1; ?></td>
+                    <td><a href="<?= $characterUrl($player); ?>"><?= $player; ?></a></td>
+                    <td><?= $sampleClasses[$i % \count($sampleClasses)]; ?></td>
+                    <td><?= $sampleModes[$i % \count($sampleModes)]; ?></td>
+                    <td>Test Server <?= $i % 2 + 1; ?></td>
+                    <td><?= \max(1, 99 - \intdiv($i * 3, 2)); ?></td>
                 </tr>
-                <?php endfor; ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>

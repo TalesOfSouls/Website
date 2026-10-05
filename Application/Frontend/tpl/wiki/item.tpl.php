@@ -30,11 +30,17 @@ $time = time();
 
 <h1><?= $this->printHtml($item->name); ?></h1>
 
-<h2>Recepies</h2>
+<p>See this item in the <a href="/database/item/<?= $item->id; ?>">item database</a>.</p>
+
+<h2>Recipes</h2>
+
+<?php if (empty($recipes)) : ?>
+    <p><em>This item can't be crafted.</em></p>
+<?php endif; ?>
 
 <?php foreach ($recipes as $recipe) : ?>
     <h3>#<?= $recipe->id; ?></h3>
-    <p>Cost: <?= $recipe->cost; ?> Time: <?= $recipe->time; ?> Discovered: <?= $recipe->time; ?> - <?= $recipe->time; ?></p>
+    <p>Cost: <?= $recipe->cost; ?> &middot; Time: <?= $recipe->time; ?>s</p>
     <p>Ingredients:</p>
     <table>
         <tr>
@@ -48,8 +54,8 @@ $time = time();
     </table>
 <?php endforeach; ?>
 
-<?php if (!empty($usedin)) : ?>
-    <h2>Used in recepies</h2>
+<?php if (false && !empty($usedin)) : /* @todo the "used in" query returns wrong recipes */ ?>
+    <h2>Used in recipes</h2>
 
     <table>
         <?php foreach (/*$usedin*/[] as $in) : ?>
