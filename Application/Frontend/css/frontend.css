@@ -2853,3 +2853,287 @@ body .vote-box.small button {
     padding: 0 .4rem;
     vertical-align: middle;
 }
+
+.nowrap {
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Notifications (jsOMS app messages and messages after a form post)
+   ========================================================================== */
+
+body #app-message-container {
+    position: fixed;
+    top: auto;
+    right: 1rem;
+    bottom: 1rem;
+    left: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 340px;
+    max-width: calc(100vw - 2rem);
+    margin: 0;
+    padding: 0;
+}
+
+body #app-message-container .log-msg {
+    position: relative;
+    max-width: none;
+    margin: 0;
+    padding: .85rem 2.5rem .85rem 1rem;
+    color: #fff;
+    background: var(--tos-panel-bg);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-left: 3px solid var(--tos-accent);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+    font-size: .9rem;
+}
+
+body #app-message-container .log-msg-title {
+    display: block;
+    margin-bottom: .25rem;
+}
+
+body #app-message-container .log-lvl-ok      { border-left-color: #4fd36b; }
+body #app-message-container .log-lvl-info    { border-left-color: var(--tos-accent); }
+body #app-message-container .log-lvl-warning { border-left-color: var(--tos-highlight); }
+body #app-message-container .log-lvl-error   { border-left-color: #ff6b6b; }
+
+body #app-message-container .log-msg .close {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, .6);
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+body #app-message-container .log-msg .close:hover {
+    color: var(--tos-highlight);
+}
+
+/* Vote buttons: every button is its own small form */
+.vote-box form {
+    display: block;
+    margin: 0;
+}
+
+/* comments added by JavaScript keep their line breaks */
+.comment.own .comment-body p[data-tpl="text"] {
+    white-space: pre-line;
+}
+
+/* ==========================================================================
+   Administration & account
+   ========================================================================== */
+
+.admin-bar {
+    margin: 0 0 1rem 0;
+}
+
+.panel h2 .admin-create {
+    float: right;
+    height: 30px;
+    font-size: .8rem;
+    letter-spacing: .5px;
+}
+
+.wiki-article .admin-edit {
+    float: right;
+    margin-left: 1rem;
+}
+
+.wiki-admin {
+    margin-top: 1rem;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+body .admin-actions .button + .button {
+    margin-left: 0;
+}
+
+/* buttons */
+body button.danger,
+body .button.danger {
+    border-color: #c33;
+}
+
+body button.danger:hover {
+    color: #fff;
+    background: rgba(204, 51, 51, .35);
+    border-color: #ff6b6b;
+}
+
+body button.link-button {
+    height: auto;
+    padding: 0;
+    font-size: .8rem;
+    color: var(--tos-muted);
+    background: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+body button.link-button:hover {
+    color: #ff6b6b;
+    background: none;
+}
+
+.inline-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.panel > .inline-form {
+    margin-top: 1rem;
+}
+
+.comment-actions {
+    display: block;
+}
+
+/* editors */
+body .site-form textarea.editor {
+    min-height: 26rem;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: .85rem;
+    line-height: 1.5;
+}
+
+body .site-form textarea.short {
+    min-height: 4.5rem;
+}
+
+body .site-form input[type=datetime-local] {
+    box-sizing: border-box;
+    width: 100%;
+    height: 36px;
+    padding: 0 .75rem;
+    font-family: var(--ff);
+    font-size: .9rem;
+    color: var(--ipt-c);
+    background: var(--ipt-bg);
+    border: 1px solid var(--iborder);
+    border-radius: 0;
+    color-scheme: dark;
+}
+
+.site-form .form-hint code {
+    font-size: .75rem;
+}
+
+/* table rows as forms (development, accounts) */
+.admin-grid td {
+    vertical-align: top;
+}
+
+body .admin-grid input[type=text],
+body .admin-grid input[type=number],
+body .admin-grid select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 5rem;
+    height: 32px;
+    padding: 0 .5rem;
+    font-family: var(--ff);
+    font-size: .85rem;
+    color: var(--ipt-c);
+    background: var(--ipt-bg);
+    border: 1px solid var(--iborder);
+    border-radius: 0;
+}
+
+body .admin-grid input + input {
+    margin-top: 4px;
+}
+
+/* the table cells don't wrap: stack the fields (milestone title + description) instead of overflowing the cell */
+body .admin-grid input[type=text] {
+    display: block;
+}
+
+body .admin-grid select {
+    width: auto;
+    min-width: 8.5rem;
+}
+
+body .admin-grid input[type=number] {
+    width: 5.5rem;
+    min-width: 0;
+}
+
+.admin-grid .new-row td {
+    border-top: 1px dashed rgba(255, 255, 255, .2);
+}
+
+.row-actions {
+    white-space: nowrap;
+}
+
+.row-actions form {
+    display: inline-block;
+    margin: 0;
+}
+
+body .row-actions button {
+    height: 32px;
+    padding: 0 .9rem;
+}
+
+body .row-actions form + form button {
+    margin-left: 4px;
+    padding: 0 .7rem;
+}
+
+/* feedback: edit & moderation */
+details.feedback-edit > summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--tos-accent);
+}
+
+details.feedback-edit[open] > summary {
+    margin-bottom: 1rem;
+}
+
+.feedback-moderation {
+    border-left: 3px solid var(--tos-highlight);
+}
+
+/* contact messages */
+details.admin-message {
+    padding: .6rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+details.admin-message > summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem 1rem;
+    cursor: pointer;
+}
+
+.admin-message-text {
+    white-space: normal;
+    margin: .5rem 0 0 0;
+}

@@ -4,3 +4,6 @@
 [submodule "cssOMS"]
 	path = cssOMS
 	url = https://github.com/Karaka-Management/cssOMS.git
+[submodule "jsOMS"]
+	path = jsOMS
+	url = https://github.com/Karaka-Management/jsOMS.git

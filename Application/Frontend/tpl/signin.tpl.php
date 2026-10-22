@@ -1,10 +1,9 @@
 <div class="floater">
     <div class="auth-box panel">
         <h1>Sign in</h1>
-        <?php if (!empty($this->data['error'])) : ?>
-            <div class="notice"><?= $this->printHtml($this->data['error']); ?></div>
-        <?php endif; ?>
-        <form class="site-form" method="POST" action="/signin">
+        <form id="signin-form" class="site-form" method="POST" action="/api/account/signin">
+            <input type="hidden" name="CSRF" value="<?= \phpOMS\Uri\UriFactory::getQuery('$CSRF'); ?>">
+            <input type="hidden" name="redirect" value="<?= $this->printHtml($this->data['redirect'] ?? ''); ?>">
             <div class="form-group">
                 <label for="signin-user">User name or e-mail</label>
                 <input id="signin-user" type="text" name="user" autocomplete="username" required>

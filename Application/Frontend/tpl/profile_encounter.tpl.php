@@ -1,11 +1,10 @@
 <?php
 use Application\Frontend\Chart;
-use Application\Frontend\SampleEncounters;
+use Application\Frontend\Provider\EncounterData;
 
 /** @var \phpOMS\Views\View $this */
 $profile   = $this->data['profile'];
 $encounter = $this->data['encounter'];
-$samples   = $this->data['sample'];
 $type      = $encounter['type'];
 
 // Group sorted by damage
@@ -38,7 +37,7 @@ $attemptChart = function (array $attempts) : string {
             'y'      => $attempt['hp_left'],
             'title'  => 'Attempt ' . $attempt['no'] . ': '
                 . ($attempt['kill'] ? 'Kill' : $attempt['hp_left'] . '% health left')
-                . ' (' . SampleEncounters::formatDuration($attempt['duration']) . ')',
+                . ' (' . EncounterData::formatDuration($attempt['duration']) . ')',
             'marker' => $attempt['kill'] ? 'kill' : null,
         ];
     }
@@ -64,7 +63,7 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=' . $type;
 ?>
 <div class="floater">
     <div class="profile-banner">
-        <p class="profile-back"><a href="<?= $backUrl; ?>"><?= $this->printHtml($profile->name); ?> &middot; <?= SampleEncounters::TYPES[$type]; ?></a></p>
+        <p class="profile-back"><a href="<?= $backUrl; ?>"><?= $this->printHtml($profile->name); ?> &middot; <?= EncounterData::TYPES[$type]; ?></a></p>
         <h1 class="profile-name"><?= $this->printHtml($encounter['title']); ?></h1>
         <p class="profile-meta">
             <?= $this->printHtml($type === 'worldboss' ? $encounter['location'] : $encounter['difficulty']); ?>
@@ -75,17 +74,16 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=' . $type;
 </div>
 
 <div class="floater page-section">
-    <div class="notice info">All values are sample data.</div>
 
     <div class="stat-tiles">
-        <div class="stat-tile"><span class="value"><?= SampleEncounters::formatDuration($encounter['duration']); ?></span><span class="label">Duration</span></div>
+        <div class="stat-tile"><span class="value"><?= EncounterData::formatDuration($encounter['duration']); ?></span><span class="label">Duration</span></div>
         <?php if ($type === 'worldboss') : ?>
             <div class="stat-tile"><span class="value"><?= \count($group); ?></span><span class="label">Participants</span></div>
         <?php else : ?>
             <div class="stat-tile"><span class="value"><?= $encounter['killed']; ?>/<?= $encounter['total']; ?></span><span class="label">Bosses killed</span></div>
         <?php endif; ?>
-        <div class="stat-tile"><span class="value"><?= SampleEncounters::formatNumber($totalDamage); ?></span><span class="label">Total damage</span></div>
-        <div class="stat-tile"><span class="value"><?= SampleEncounters::formatNumber($totalHealing); ?></span><span class="label">Total healing</span></div>
+        <div class="stat-tile"><span class="value"><?= EncounterData::formatNumber($totalDamage); ?></span><span class="label">Total damage</span></div>
+        <div class="stat-tile"><span class="value"><?= EncounterData::formatNumber($totalHealing); ?></span><span class="label">Total healing</span></div>
         <div class="stat-tile"><span class="value"><?= $totalDeaths; ?></span><span class="label">Deaths</span></div>
         <div class="stat-tile"><span class="value">#<?= $encounter['rank']; ?></span><span class="label"><?= $this->printHtml($encounter['self']['name']); ?> rank</span></div>
     </div>
@@ -135,7 +133,7 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=' . $type;
                     <?php foreach ($attempts as $attempt) : ?>
                         <tr>
                             <td><?= $attempt['no']; ?></td>
-                            <td><?= SampleEncounters::formatDuration($attempt['duration']); ?></td>
+                            <td><?= EncounterData::formatDuration($attempt['duration']); ?></td>
                             <td><?= $attempt['kill'] ? '<span class="badge done">Kill</span>' : 'Wipe at ' . $attempt['hp_left'] . '%'; ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -174,7 +172,7 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=' . $type;
                             <div class="damage-row<?= $member['name'] === $encounter['self']['name'] ? ' highlight' : ''; ?>" title="<?= $this->printHtml($member['name']); ?>: <?= \number_format($value); ?>">
                                 <span class="damage-name"><?= $characterLink($member); ?></span>
                                 <span class="share-bar"><span style="width: <?= \round($value / $max * 100, 1); ?>%"></span></span>
-                                <span class="share-value"><?= SampleEncounters::formatNumber($value); ?></span>
+                                <span class="share-value"><?= EncounterData::formatNumber($value); ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>

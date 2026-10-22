@@ -26,6 +26,20 @@ $page = static fn (string $action, int $verb = RouteVerb::GET) : array => [
     ],
 ];
 
+/**
+ * Short helper for the administration pages handled by the BackendController.
+ *
+ * @param string $action Controller method name
+ *
+ * @return array
+ */
+$admin = static fn (string $action) : array => [
+    [
+        'dest' => '\Controller\BackendController:' . $action,
+        'verb' => RouteVerb::GET,
+    ],
+];
+
 // optional query string + end of route
 $q = '(\?.*)?$';
 
@@ -34,11 +48,11 @@ return [
     '^/*' . $q => $page('frontView'),
 
     // Account
-    '^/signup' . $q                   => $page('signupView', RouteVerb::GET | RouteVerb::SET),
+    '^/signup' . $q                   => $page('signupView'),
     '^/signup/success' . $q           => $page('signupSuccessView'),
     '^/signup/confirmation' . $q      => $page('signupConfirmationView'),
-    '^/signin' . $q                   => $page('signinView', RouteVerb::GET | RouteVerb::SET),
-    '^/forgot' . $q                   => $page('forgotView', RouteVerb::GET | RouteVerb::SET),
+    '^/signin' . $q                   => $page('signinView'),
+    '^/forgot' . $q                   => $page('forgotView'),
 
     // News
     '^/news' . $q                     => $page('newsView'),
@@ -82,8 +96,8 @@ return [
     '^/auction(/[a-z_]+)?' . $q       => $page('auctionHouseView'),
     '^/recordings' . $q               => $page('recordingListView'),
     '^/feedback' . $q                 => $page('feedbackListView'),
-    '^/feedback/create' . $q          => $page('feedbackCreateView', RouteVerb::GET | RouteVerb::SET),
-    '^/feedback/\d+' . $q              => $page('feedbackView', RouteVerb::GET | RouteVerb::SET),
+    '^/feedback/create' . $q          => $page('feedbackCreateView'),
+    '^/feedback/\d+' . $q              => $page('feedbackView'),
 
     // Shop
     '^/shop' . $q                     => $page('shopView'),
@@ -98,13 +112,28 @@ return [
     '^/shop/buy/success' . $q         => $page('shopBuySuccessView'),
 
     // Contact & legal
-    '^/contact' . $q                  => $page('contactView', RouteVerb::GET | RouteVerb::SET),
+    '^/contact' . $q                  => $page('contactView'),
     '^/imprint' . $q                  => $page('imprintView'),
     '^/privacy' . $q                  => $page('privacyView'),
     '^/terms' . $q                    => $page('termsView'),
     '^/dpa' . $q                      => $page('dpaView'),
     '^/conduct' . $q                  => $page('cocView'),
     '^/cla' . $q                      => $page('claView'),
+
+    // Account settings of the signed in user
+    '^/account' . $q                  => $page('accountView'),
+
+    // Administration (administrators only, the forms are sent to /api/admin/...)
+    '^/admin' . $q                    => $admin('adminDashboardView'),
+    '^/admin/news' . $q               => $admin('adminNewsListView'),
+    '^/admin/news/(create|\d+)' . $q  => $admin('adminNewsEditView'),
+    '^/admin/wiki' . $q               => $admin('adminWikiListView'),
+    '^/admin/wiki/(create|\d+)' . $q  => $admin('adminWikiEditView'),
+    '^/admin/faq' . $q                => $admin('adminFaqListView'),
+    '^/admin/faq/(create|\d+)' . $q   => $admin('adminFaqEditView'),
+    '^/admin/development' . $q        => $admin('adminDevelopmentView'),
+    '^/admin/users' . $q              => $admin('adminUserListView'),
+    '^/admin/messages' . $q           => $admin('adminMessageListView'),
 
     // Errors (used by Application::routeDispatching)
     '^/frontend/e403' . $q            => $page('error403View'),

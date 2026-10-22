@@ -1,21 +1,7 @@
 <?php
-use phpOMS\Uri\UriFactory;
-
 /** @var \phpOMS\Views\View $this */
-$search  = \trim($this->request->getDataString('player') ?? '');
-$samples = $this->data['sample'] ?? ['players' => []];
-
-// Database accounts + sample players
-$rows = [];
-foreach ($this->data['profiles'] as $profile) {
-    if ($profile->id == 1) { continue; }
-    $rows[] = ['id' => $profile->id, 'name' => $profile->name, 'characters' => '-', 'points' => '-'];
-}
-
-foreach ($samples['players'] as $id => $player) {
-    $points = \array_sum(\array_column(\Application\Frontend\SampleAchievements::forPlayer($id, $player['since']), 'points'));
-    $rows[] = ['id' => $id, 'name' => $player['name'], 'characters' => \count($player['characters']), 'points' => \number_format($points)];
-}
+$search = $this->data['search'] ?? '';
+$rows   = $this->data['rows'] ?? [];
 ?>
 <div class="floater">
     <div id="welcome-section">
@@ -30,30 +16,34 @@ foreach ($samples['players'] as $id => $player) {
     </form>
 
     <div class="floater">
-        <table class="content-table">
+        <table class="content-table encounter-table">
             <thead>
                 <tr>
                     <th class="wf-100">Player</th>
                     <th>Characters</th>
                     <th>Achievement points</th>
+                    <th>Member since</th>
                 </tr>
             </thead>
             <tbody>
-                <?php $c = 0; foreach ($rows as $row) :
-                    if ($search !== '' && \stripos($row['name'], $search) === false) { continue; }
-                    ++$c;
-                    $url = UriFactory::build('{/base}/player/profile/' . $row['id']);
-                ?>
-                    <tr data-href="<?= $url; ?>">
-                        <td><a href="<?= $url; ?>"><?= $this->printHtml($row['name']); ?></a></td>
-                        <td><?= $row['characters']; ?></td>
-                        <td><?= $row['points']; ?></td>
+                <?php foreach ($rows as $row) : ?>
+                    <tr>
+                        <td><a class="row-link" href="/player/profile/<?= $row['id']; ?>"><?= $this->printHtml($row['name']); ?></a></td>
+                        <td><?= (int) $row['characters']; ?></td>
+                        <td><?= \number_format((int) $row['points']); ?></td>
+                        <td class="nowrap"><?= $row['created'] !== null ? \substr($row['created'], 0, 10) : '-'; ?></td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if ($c === 0) : ?>
-                    <tr><td colspan="3">No players found.</td></tr>
+                <?php if (empty($rows)) : ?>
+                    <tr><td colspan="4">No players found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
+        <?php
+            $page    = $this->data['page'] ?? 1;
+            $pages   = $this->data['pages'] ?? 1;
+            $pageUrl = fn (int $p) : string => '/player/profile?' . \htmlspecialchars(\http_build_query(\array_filter(['player' => $search, 'page' => $p > 1 ? $p : null])));
+            include __DIR__ . '/pager.tpl.php';
+        ?>
     </div>
 </div>

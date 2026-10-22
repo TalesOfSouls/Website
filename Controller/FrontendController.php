@@ -4,16 +4,21 @@ declare(strict_types=1);
 namespace Controller;
 
 use Models\AccountMapper;
-use Models\CharacterMapper;
-use Models\GuildMapper;
+use Models\DevelopmentAreaMapper;
 use Models\FaqMapper;
+use Models\MilestoneMapper;
+use Models\NewsMapper;
+use Models\NewsStatus;
+use Models\WikiPageMapper;
 use Models\ItemMapper;
 use Models\RecipeMapper;
-use Application\Frontend\SampleAchievements;
-use Application\Frontend\SampleCharacterHistory;
-use Application\Frontend\SampleEncounters;
-use Application\Frontend\SampleFeedback;
-use Application\Frontend\SampleSeasons;
+use Application\Frontend\Provider\AchievementData;
+use Application\Frontend\Provider\CharacterData;
+use Application\Frontend\Provider\EncounterData;
+use Application\Frontend\Provider\FeedbackData;
+use Application\Frontend\Provider\LadderData;
+use Application\Frontend\Provider\ProfileData;
+use Application\Frontend\Provider\SeasonData;
 use phpOMS\Account\PermissionType;
 use phpOMS\Contract\RenderableInterface;
 use phpOMS\Message\Http\HttpRequest;
@@ -43,14 +48,6 @@ final class FrontendController extends ModuleAbstract
      * @since 1.0.0
      */
     public static array $dependencies = [];
-
-    /**
-     * Directory containing the news markdown files (data/news/YYYY/YYYY_MM_DD_slug.md)
-     *
-     * @var string
-     * @since 1.0.0
-     */
-    private const NEWS_PATH = __DIR__ . '/../Application/Frontend/data/news';
 
     /**
      * Directory containing the legal markdown files
@@ -117,120 +114,92 @@ final class FrontendController extends ModuleAbstract
 
     public function newsArticleView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $slug = $request->uri->getPathElement(1);
-        $list = $this->getNewsList();
+        $slug  = $request->uri->getPathElement(1);
+        $admin = $this->isAdmin($request);
 
-        foreach ($list as $index => $news) {
-            if ($news['slug'] !== $slug) {
-                continue;
-            }
+        /** @var \Models\News $news */
+        $news = NewsMapper::get()->where('slug', $slug)->execute();
 
-            $view = $this->createView($request, $response, 'news_article', $news['title']);
-            $view->data['article'] = $news;
-            $view->data['content'] = Markdown::parse($this->getNewsContent($news['file']));
-            $view->data['newer']   = $list[$index - 1] ?? null;
-            $view->data['older']   = $list[$index + 1] ?? null;
+        // drafts and scheduled posts are only visible for administrators (preview)
+        if ($news->id === 0 || (!$news->isVisible() && !$admin)) {
+            $response->header->status = RequestStatusCode::R_404;
 
-            return $view;
+            return $this->createView($request, $response, 'error/404', 'Not found');
         }
 
-        return $this->createView($request, $response, 'error/404', 'Not found');
+        $list = $this->getNewsList();
+        $view = $this->createView($request, $response, 'news_article', $news->title);
+
+        $view->data['article'] = $this->newsToArray($news, 0);
+        $view->data['content'] = Markdown::parse($news->content);
+        $view->data['admin']   = $admin;
+        $view->data['newer']   = null;
+        $view->data['older']   = null;
+
+        foreach ($list as $index => $entry) {
+            if ($entry['id'] === $news->id) {
+                $view->data['newer'] = $list[$index - 1] ?? null;
+                $view->data['older'] = $list[$index + 1] ?? null;
+            }
+        }
+
+        return $view;
     }
 
     /**
-     * Get all news posts sorted by date (newest first)
+     * Published news posts (newest first)
      *
-     * @return array<int, array{slug:string, file:string, date:\DateTime, title:string, excerpt:string, image:string}>
+     * @return array<int, array{id:int, slug:string, date:\DateTime, title:string, excerpt:string, image:string, status:string}>
      */
     private function getNewsList() : array
     {
-        $files = \glob(self::NEWS_PATH . '/*/*.md');
-        if ($files === false) {
-            return [];
-        }
+        /** @var \Models\News[] $posts */
+        $posts = NewsMapper::getAll()
+            ->where('status', NewsStatus::PUBLISHED)
+            ->where('published', (new \DateTime())->format('Y-m-d H:i:s'), '<=')
+            ->sort('published', 'DESC')
+            ->executeGetArray();
 
         $list = [];
-        foreach ($files as $file) {
-            $name = \basename($file, '.md');
-            if (\preg_match('/^(\d{4})_(\d{2})_(\d{2})_(.+)$/', $name, $match) !== 1) {
-                continue;
-            }
-
-            $raw   = \trim((string) \file_get_contents($file));
-            $title = \ucfirst(\str_replace('_', ' ', $match[4]));
-
-            if (\preg_match('/^#\s+(.+)$/m', $raw, $heading) === 1) {
-                $title = \trim($heading[1]);
-            }
-
-            // first real paragraph = excerpt
-            $excerpt = '';
-            foreach (\preg_split('/\R\R+/', $raw) ?: [] as $block) {
-                $block = \trim($block);
-                if ($block === '' || $block[0] === '#' || $block[0] === '!' || $block[0] === '*' || $block[0] === '-') {
-                    continue;
-                }
-
-                $excerpt = \strip_tags($block);
-                break;
-            }
-
-            if (\mb_strlen($excerpt) > 220) {
-                $excerpt = \mb_substr($excerpt, 0, 217) . '...';
-            }
-
-            $image = '';
-            if (\preg_match('/!\[[^\]]*\]\(([^)]+)\)/', $raw, $img) === 1) {
-                $image = $this->rewriteNewsPaths($img[1]);
-            }
-
-            $list[] = [
-                'slug'    => \strtolower(\str_replace('_', '-', $name)),
-                'file'    => $file,
-                'date'    => new \DateTime($match[1] . '-' . $match[2] . '-' . $match[3]),
-                'title'   => $title,
-                'excerpt' => $excerpt,
-                'image'   => $image,
-            ];
-        }
-
-        \usort($list, fn (array $a, array $b) : int => $b['date'] <=> $a['date']);
-
-        foreach ($list as $i => $news) {
-            if ($news['image'] === '') {
-                $list[$i]['image'] = self::NEWS_FALLBACK_IMAGES[$i % \count(self::NEWS_FALLBACK_IMAGES)];
-            }
+        foreach (\array_values($posts) as $i => $news) {
+            $list[] = $this->newsToArray($news, $i);
         }
 
         return $list;
     }
 
     /**
-     * Load the markdown of a news post without its title (the title is rendered by the template)
+     * News post as array for the templates
      *
-     * @param string $file News file
+     * @param \Models\News $news  News post
+     * @param int          $index Position in the list (for the fallback image)
      *
-     * @return string
+     * @return array
      */
-    private function getNewsContent(string $file) : string
+    private function newsToArray(\Models\News $news, int $index) : array
     {
-        $raw = (string) \file_get_contents($file);
-        $raw = \preg_replace('/^#\s+.+$/m', '', $raw, 1) ?? $raw;
-
-        return $this->rewriteNewsPaths($raw);
+        return [
+            'id'      => $news->id,
+            'slug'    => $news->slug,
+            'date'    => $news->published,
+            'title'   => $news->title,
+            'excerpt' => $news->summary,
+            'image'   => $news->image !== '' ? $news->image : self::NEWS_FALLBACK_IMAGES[$index % \count(self::NEWS_FALLBACK_IMAGES)],
+            'status'  => $news->status,
+        ];
     }
 
     /**
-     * News markdown files reference images relative to the markdown file (../img/...).
-     * The website uses <base href="/"> which is why these paths need to be absolute.
+     * Is the current user an administrator?
      *
-     * @param string $text Text
+     * @param RequestAbstract $request Request
      *
-     * @return string
+     * @return bool
      */
-    private function rewriteNewsPaths(string $text) : string
+    private function isAdmin(RequestAbstract $request) : bool
     {
-        return \str_replace('](../img/', '](/Application/Frontend/data/news/img/', \str_replace('../img/', '/Application/Frontend/data/news/img/', $text));
+        return $request->header->account > 0
+            && AccountMapper::get()->where('id', $request->header->account)->execute()->isAdmin();
     }
 
     /* ======================================================================
@@ -239,11 +208,6 @@ final class FrontendController extends ModuleAbstract
 
     public function signupView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
-        // @todo Create the account once the account backend exists
-        if ($request->getRouteVerb() === RouteVerb::SET) {
-            return $this->createView($request, $response, 'signup_success', 'Sign up');
-        }
-
         return $this->createView($request, $response, 'signup', 'Sign up');
     }
 
@@ -262,23 +226,38 @@ final class FrontendController extends ModuleAbstract
     public function signinView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
         $view = $this->createView($request, $response, 'signin', 'Sign in');
+        $view->data['redirect'] = $request->getDataString('redirect') ?? '';
 
-        // @todo Authenticate once the account backend exists
-        $view->data['error'] = $request->getRouteVerb() === RouteVerb::SET
-            ? 'Signing in is not available yet. Accounts will open with the first beta.'
-            : '';
+        return $view;
+    }
+
+    /**
+     * Account settings of the signed in user
+     */
+    public function accountView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
+    {
+        $view = $this->createView($request, $response, 'account', 'Account');
+
+        /** @var \Models\Account $account */
+        $account = AccountMapper::get()->where('id', $request->header->account)->execute();
+
+        if ($account->id === 0) {
+            $response->header->set('Location', '/signin?redirect=%2Faccount', true);
+            $response->header->status = RequestStatusCode::R_303;
+
+            return $view;
+        }
+
+        $view->data['account']    = $account;
+        $view->data['characters'] = (new ProfileData($this->app->dbPool->get()))->getCharactersOfAccount($account->id, true);
+        $view->data['feedback']   = \Models\FeedbackMapper::getAll()->where('account', $account->id)->sort('created', 'DESC')->executeGetArray();
 
         return $view;
     }
 
     public function forgotView(RequestAbstract $request, ResponseAbstract $response, array $data = []): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'forgot', 'Forgot password');
-
-        // @todo Send the reset mail once the account backend exists
-        $view->data['sent'] = $request->getRouteVerb() === RouteVerb::SET;
-
-        return $view;
+        return $this->createView($request, $response, 'forgot', 'Forgot password');
     }
 
     public function loginView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
@@ -362,6 +341,7 @@ final class FrontendController extends ModuleAbstract
         \usort($faqs, fn ($a, $b) : int => $a->order <=> $b->order ?: $a->id <=> $b->id);
 
         $view->data['faq']        = $faqs;
+        $view->data['admin']      = $this->isAdmin($request);
         $view->data['categories'] = $categories;
         $view->data['category']   = $category;
         $view->data['search']     = $search;
@@ -386,14 +366,51 @@ final class FrontendController extends ModuleAbstract
             }
         }
 
-        $path = \strtolower(\implode('_', $pathElements));
+        $slug = \strtolower(\implode('/', $pathElements));
+        $slug = $slug === '' ? 'index' : $slug;
 
-        // Only allow simple template names
-        if (\preg_match('/^[a-z_]*$/', $path) !== 1) {
-            $path = '404';
+        /** @var \Models\WikiPage[] $pages */
+        $pages = WikiPageMapper::getAll()->executeGetArray();
+
+        $nav = \array_filter($pages, fn ($p) => $p->navOrder !== null);
+        \usort($nav, fn ($a, $b) => $a->navOrder <=> $b->navOrder);
+
+        $page = null;
+        foreach ($pages as $p) {
+            // old links use "_" instead of "/" (e.g. /wiki/item_equipment)
+            if ($p->slug === $slug || $p->slug === \str_replace('_', '/', $slug) || \str_replace('/', '_', $p->slug) === $slug) {
+                $page = $p;
+                break;
+            }
         }
 
-        $view->data['path'] = $path === '' ? 'index' : $path;
+        $view->data['slug']  = $slug;
+        $view->data['page']  = $page;
+        $view->data['nav']   = $nav;
+        $view->data['admin'] = $this->isAdmin($request);
+
+        // search and item details are generated pages
+        if ($slug === 'search') {
+            $query   = \trim($request->getDataString('q') ?? '');
+            $results = [];
+
+            if ($query !== '') {
+                foreach ($pages as $p) {
+                    if (\stripos($p->title, $query) !== false || \stripos(\strip_tags($p->content), $query) !== false) {
+                        $results[] = $p;
+                    }
+                }
+            }
+
+            $view->data['query']   = $query;
+            $view->data['results'] = $results;
+        } elseif ($page === null && $slug !== 'item') {
+            $response->header->status = RequestStatusCode::R_404;
+        }
+
+        if ($page !== null) {
+            $response->data['Content']->head->title .= ' - ' . $page->title;
+        }
 
         return $view;
     }
@@ -416,7 +433,10 @@ final class FrontendController extends ModuleAbstract
     public function developmentView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $view = $this->createView($request, $response, 'development', 'Development');
-        $view->data['news'] = \array_slice($this->getNewsList(), 0, 3);
+        $view->data['news']       = \array_slice($this->getNewsList(), 0, 3);
+        $view->data['milestones'] = MilestoneMapper::getAll()->sort('order', 'ASC')->executeGetArray();
+        $view->data['areas']      = DevelopmentAreaMapper::getAll()->sort('order', 'ASC')->executeGetArray();
+        $view->data['admin']      = $this->isAdmin($request);
 
         return $view;
     }
@@ -432,7 +452,33 @@ final class FrontendController extends ModuleAbstract
 
     public function ladderView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        return $this->createView($request, $response, 'ladder', 'Ladder');
+        $view = $this->createView($request, $response, 'ladder', 'Ladder');
+
+        $category = $request->getDataString('category') ?? '';
+        $type     = $request->getDataString('type') ?? '';
+
+        // the category selects the default ladder of a category
+        if ($type === '' || $type === 'Type') {
+            $type = match ($category) {
+                'Player' => 'Achievement',
+                'Guild'  => 'Raid',
+                default  => 'Level',
+            };
+        }
+
+        $filter = [
+            'type'     => $type,
+            'player'   => \trim($request->getDataString('player') ?? ''),
+            'server'   => \trim($request->getDataString('server') ?? ''),
+            'class'    => \in_array($request->getDataString('class') ?? '', ['', 'Any', 'Class'], true) ? '' : (string) $request->getDataString('class'),
+            'mode'     => \in_array($request->getDataString('mode') ?? '', ['', 'Mode'], true) ? '' : (string) $request->getDataString('mode'),
+            'seasonal' => ($request->getDataString('time') ?? '') === 'Seasonal',
+        ];
+
+        $view->data['filter'] = $filter + ['category' => $category];
+        $view->data['ladder'] = (new LadderData($this->app->dbPool->get()))->get($filter);
+
+        return $view;
     }
 
     public function recordingListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
@@ -450,12 +496,11 @@ final class FrontendController extends ModuleAbstract
         $sort  = $request->getDataString('sort') ?? 'top';
 
         $view->data['query'] = $query;
-        $view->data['type']  = \in_array($type, SampleFeedback::TYPES, true) ? $type : '';
-        $view->data['state'] = isset(SampleFeedback::STATES[$state]) ? $state : '';
+        $view->data['type']  = \in_array($type, FeedbackData::TYPES, true) ? $type : '';
+        $view->data['state'] = isset(FeedbackData::STATES[$state]) ? $state : '';
         $view->data['sort']  = \in_array($sort, ['top', 'new', 'comments'], true) ? $sort : 'top';
 
-        $view->data['feedbacks'] = SampleFeedback::filter(
-            SampleFeedback::all($this->getSampleProfiles()),
+        $view->data['feedbacks'] = (new FeedbackData($this->app->dbPool->get()))->getList(
             $view->data['query'], $view->data['type'], $view->data['state'], $view->data['sort']
         );
 
@@ -465,52 +510,22 @@ final class FrontendController extends ModuleAbstract
     /**
      * Single feedback incl. comments and votes
      *
-     * Votes and comments are sent as normal form posts (no JavaScript).
-     *
-     * @todo Require a signed in account, store votes (one per account) and comments
+     * Votes and comments are sent to the API (see ApiController).
      */
     public function feedbackView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $id       = (int) $request->uri->getPathElement(1);
-        $feedback = SampleFeedback::get($id, $this->getSampleProfiles());
+        $feedback = (new FeedbackData($this->app->dbPool->get()))->get(
+            (int) $request->uri->getPathElement(1),
+            $request->header->account
+        );
 
         $view = $this->createView($request, $response, 'feedback_view', $feedback['title'] ?? 'Feedback');
         $view->data['feedback'] = $feedback;
+        $view->data['account']  = $request->header->account;
+        $view->data['viewer']   = AccountMapper::get()->where('id', $request->header->account)->execute();
 
         if ($feedback === null) {
             $response->header->status = RequestStatusCode::R_404;
-
-            return $view;
-        }
-
-        $view->data['vote']         = '';
-        $view->data['commentVotes'] = [];
-        $view->data['newComment']   = null;
-        $view->data['commentError'] = false;
-
-        if ($request->getRouteVerb() === RouteVerb::SET) {
-            $vote = $request->getDataString('vote') ?? '';
-            $vote = \in_array($vote, ['up', 'down'], true) ? $vote : '';
-
-            switch ($request->getDataString('action') ?? '') {
-                case 'vote':
-                    $view->data['vote'] = $vote;
-                    break;
-                case 'comment-vote':
-                    $commentId = (int) ($request->getDataString('comment') ?? 0);
-                    if ($vote !== '' && $commentId > 0) {
-                        $view->data['commentVotes'][$commentId] = $vote;
-                    }
-                    break;
-                case 'comment':
-                    $text = \trim($request->getDataString('text') ?? '');
-                    if ($text === '' || \mb_strlen($text) > 2000) {
-                        $view->data['commentError'] = true;
-                    } else {
-                        $view->data['newComment'] = ['text' => $text, 'date' => new \DateTime('now')];
-                    }
-                    break;
-            }
         }
 
         return $view;
@@ -519,9 +534,7 @@ final class FrontendController extends ModuleAbstract
     public function feedbackCreateView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $view = $this->createView($request, $response, 'feedback_create', 'Feedback');
-
-        // @todo Store the feedback once the feedback table exists
-        $view->data['sent'] = $request->getRouteVerb() === RouteVerb::SET;
+        $view->data['account'] = $request->header->account;
 
         return $view;
     }
@@ -551,37 +564,50 @@ final class FrontendController extends ModuleAbstract
     public function profilePlayerListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
         $view = $this->createView($request, $response, 'profile_player_list', 'Players');
-        $view->data['profiles'] = AccountMapper::getAll()->executeGetArray();
-        $view->data['sample']   = $this->getSampleProfiles();
+
+        $search = \trim($request->getDataString('player') ?? '');
+        $page   = \max(1, $request->getDataInt('page') ?? 1);
+        $result = (new ProfileData($this->app->dbPool->get()))->getPlayers($search, $page);
+
+        $view->data['search'] = $search;
+        $view->data['rows']   = $result['rows'];
+        $view->data['page']   = $page;
+        $view->data['pages']  = \max(1, (int) \ceil($result['count'] / ProfileData::PER_PAGE));
 
         return $view;
     }
 
     public function profilePlayerView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'profile_player', 'Player');
+        $view     = $this->createView($request, $response, 'profile_player', 'Player');
+        $profiles = new ProfileData($this->app->dbPool->get());
+        $account  = $profiles->getAccount((int) $request->uri->getPathElement(2));
 
-        $view->data['sample']  = $this->getSampleProfiles();
-        $view->data['profile'] = $this->findProfile(AccountMapper::class, (int) $request->uri->getPathElement(2), $view->data['sample']['players']);
+        $view->data['profile'] = $account;
+        if ($account === null) {
+            $response->header->status = RequestStatusCode::R_404;
+
+            return $view;
+        }
+
+        $response->data['Content']->head->title .= ' ' . $account->name;
 
         // Tabs: overview, achievements, seasons, dungeon, raid, worldboss, pvp
         $tab = $request->getDataString('tab') ?? 'overview';
-        if (!isset(SampleEncounters::TYPES[$tab]) && !\in_array($tab, ['achievements', 'seasons'])) {
+        if (!isset(EncounterData::TYPES[$tab]) && !\in_array($tab, ['achievements', 'seasons'])) {
             $tab = 'overview';
         }
 
-        $since = $view->data['sample']['players'][$view->data['profile']->id]['since'] ?? '2024-07-01';
-        $view->data['achievements'] = $view->data['profile']->id > 0
-            ? SampleAchievements::forPlayer($view->data['profile']->id, $since)
-            : [];
+        $view->data['tab']          = $tab;
+        $view->data['characters']   = $profiles->getCharactersOfAccount($account->id);
+        $view->data['stats']        = $profiles->getAccountStats($account->id);
+        $view->data['achievements'] = (new AchievementData($this->app->dbPool->get()))->forAccount($account->id);
 
         // Seasonal results, one season is shown in detail (default: newest season played)
         if ($tab === 'seasons') {
-            $seasons = $view->data['profile']->id > 0
-                ? SampleSeasons::forPlayer($view->data['profile']->id, $since)
-                : [];
+            $seasons  = (new SeasonData($this->app->dbPool->get()))->forAccount($account->id);
+            $selected = $request->getDataInt('season') ?? 0;
 
-            $selected = (int) ($request->getDataString('season') ?? 0);
             if (!isset($seasons[$selected])) {
                 $played   = \array_filter($seasons, fn ($s) => $s['played']);
                 $selected = (int) (\array_key_first($played) ?? \array_key_first($seasons) ?? 0);
@@ -591,82 +617,119 @@ final class FrontendController extends ModuleAbstract
             $view->data['selectedSeason'] = $selected;
         }
 
-        $view->data['tab']        = $tab;
-        $view->data['encounters'] = !isset(SampleEncounters::TYPES[$tab])
-            ? []
-            : SampleEncounters::forPlayer($view->data['profile']->id, $tab, $view->data['sample']);
+        // Encounter lists
+        $view->data['encounters'] = [];
+        if (isset(EncounterData::TYPES[$tab])) {
+            $encounters = new EncounterData($this->app->dbPool->get());
+            $page       = \max(1, $request->getDataInt('page') ?? 1);
+            $result     = $encounters->forAccount($account->id, $tab, $page);
+
+            $view->data['encounters'] = $result['encounters'];
+            $view->data['page']       = $page;
+            $view->data['pages']      = \max(1, (int) \ceil($result['count'] / EncounterData::PER_PAGE));
+
+            if ($tab === 'pvp') {
+                $view->data['pvp']    = $encounters->pvpSummary($account->id);
+                $view->data['rating'] = $encounters->pvpRating($account->id);
+            }
+        }
 
         return $view;
     }
 
     /**
-     * Detail page of a dungeon run, raid or world boss fight of a player
+     * Detail page of a dungeon run, raid, world boss fight or PvP match of a player
      *
      * Url: /player/profile/{player}/{type}/{id}
      */
     public function profileEncounterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $samples  = $this->getSampleProfiles();
-        $profile  = $this->findProfile(AccountMapper::class, (int) $request->uri->getPathElement(2), $samples['players']);
-        $type     = $request->uri->getPathElement(3);
-
-        $encounter = $profile->id === 0
+        $account   = (new ProfileData($this->app->dbPool->get()))->getAccount((int) $request->uri->getPathElement(2));
+        $type      = $request->uri->getPathElement(3);
+        $encounter = $account === null
             ? null
-            : SampleEncounters::get($profile->id, $type, (int) $request->uri->getPathElement(4), $samples);
+            : (new EncounterData($this->app->dbPool->get()))->get($account->id, $type, (int) $request->uri->getPathElement(4));
 
         if ($encounter === null) {
+            $response->header->status = RequestStatusCode::R_404;
+
             return $this->createView($request, $response, 'error/404', 'Not found');
         }
 
         $view = $this->createView($request, $response, $type === 'pvp' ? 'profile_pvp_match' : 'profile_encounter', $encounter['title']);
-        $view->data['profile']   = $profile;
+        $view->data['profile']   = $account;
         $view->data['encounter'] = $encounter;
-        $view->data['sample']    = $samples;
 
         return $view;
     }
 
     public function profileCharacterListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'profile_character_list', 'Characters');
-        $view->data['profiles'] = CharacterMapper::getAll()->executeGetArray();
-        $view->data['sample']   = $this->getSampleProfiles();
+        $view     = $this->createView($request, $response, 'profile_character_list', 'Characters');
+        $profiles = new ProfileData($this->app->dbPool->get());
+
+        $search = \trim($request->getDataString('character') ?? '');
+        $server = $request->getDataInt('server') ?? 0;
+        $page   = \max(1, $request->getDataInt('page') ?? 1);
+        $result = $profiles->getCharacters($search, $server, $page);
+
+        $view->data['search']  = $search;
+        $view->data['server']  = $server;
+        $view->data['servers'] = $profiles->getServers();
+        $view->data['rows']    = $result['rows'];
+        $view->data['page']    = $page;
+        $view->data['pages']   = \max(1, (int) \ceil($result['count'] / ProfileData::PER_PAGE));
 
         return $view;
     }
 
     public function profileCharacterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'profile_character', 'Character');
+        $view      = $this->createView($request, $response, 'profile_character', 'Character');
+        $profiles  = new ProfileData($this->app->dbPool->get());
+        $character = $profiles->getCharacter((int) $request->uri->getPathElement(3));
 
-        $view->data['sample']  = $this->getSampleProfiles();
-        $view->data['profile'] = $this->findProfile(CharacterMapper::class, (int) $request->uri->getPathElement(3), $view->data['sample']['characters']);
+        $view->data['profile'] = $character;
+        if ($character === null) {
+            $response->header->status = RequestStatusCode::R_404;
+
+            return $view;
+        }
+
+        $response->data['Content']->head->title .= ' ' . $character->name;
+
+        $characterData = new CharacterData($this->app->dbPool->get());
+
+        $view->data['character']   = $profiles->characterToArray($character);
+        $view->data['race']        = $character->race->name;
+        $view->data['rank']        = $profiles->getRank($character);
+        $view->data['equipment']   = $characterData->equipment($character->id);
+        $view->data['statistics']  = $characterData->statistics($character->id);
+        $view->data['professions'] = $characterData->professions($character->id);
+        $view->data['progression'] = $characterData->levelProgression($character->id);
 
         // Tabs: overview, log
         $tab = $request->getDataString('tab') ?? 'overview';
         $view->data['tab'] = \in_array($tab, ['overview', 'log']) ? $tab : 'overview';
 
         // Event log filter & paging
-        $character = $view->data['sample']['characters'][$view->data['profile']->id] ?? null;
-        $events    = $character !== null && $view->data['tab'] === 'log'
-            ? SampleCharacterHistory::events($view->data['profile']->id, $character, $view->data['sample'])
-            : [];
-
         $type = $request->getDataString('type') ?? '';
-        if (isset(SampleCharacterHistory::EVENT_TYPES[$type])) {
-            $events = \array_values(\array_filter($events, fn ($event) => $event['type'] === $type));
-        } else {
+        if (!isset(CharacterData::EVENT_TYPES[$type])) {
             $type = '';
         }
 
         $perPage = 40;
-        $pages   = \max(1, (int) \ceil(\count($events) / $perPage));
-        $page    = \min($pages, \max(1, $request->getDataInt('page') ?? 1));
+        $page    = \max(1, $request->getDataInt('page') ?? 1);
+        $events  = $view->data['tab'] === 'log'
+            ? $characterData->events($character->id, $character->account->id, $type, $page, $perPage)
+            : ['events' => [], 'count' => 0];
 
-        $view->data['events']     = \array_slice($events, ($page - 1) * $perPage, $perPage);
-        $view->data['eventCount'] = \count($events);
+        $pages = \max(1, (int) \ceil($events['count'] / $perPage));
+
+        $view->data['events']     = $events['events'];
+        $view->data['eventCount'] = $events['count'];
         $view->data['eventType']  = $type;
-        $view->data['page']       = $page;
+        $view->data['page']       = \min($pages, $page);
         $view->data['pages']      = $pages;
 
         return $view;
@@ -674,66 +737,32 @@ final class FrontendController extends ModuleAbstract
 
     public function profileGuildListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'profile_guild_list', 'Guilds');
-        $view->data['profiles'] = GuildMapper::getAll()->executeGetArray();
-        $view->data['sample']   = $this->getSampleProfiles();
+        $view   = $this->createView($request, $response, 'profile_guild_list', 'Guilds');
+        $search = \trim($request->getDataString('guild') ?? '');
+
+        $view->data['search'] = $search;
+        $view->data['rows']   = (new ProfileData($this->app->dbPool->get()))->getGuilds($search);
 
         return $view;
     }
 
     public function profileGuildView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        $view = $this->createView($request, $response, 'profile_guild', 'Guild');
+        $view     = $this->createView($request, $response, 'profile_guild', 'Guild');
+        $profiles = new ProfileData($this->app->dbPool->get());
+        $guild    = $profiles->getGuild((int) $request->uri->getPathElement(2));
 
-        $view->data['sample']  = $this->getSampleProfiles();
-        $view->data['profile'] = $this->findProfile(GuildMapper::class, (int) $request->uri->getPathElement(2), $view->data['sample']['guilds']);
+        $view->data['profile'] = $guild;
+        if ($guild === null) {
+            $response->header->status = RequestStatusCode::R_404;
 
-        return $view;
-    }
-
-    /**
-     * Find a profile model by id.
-     *
-     * The profile models have no Null* counterpart, which is why ::get() would fail for unknown ids.
-     * Falls back to the sample profiles (see data/sample_profiles.php).
-     * Returns a model with id 0 if nothing was found (the templates render a 404 in that case).
-     *
-     * @param string $mapper  Mapper class
-     * @param int    $id      Model id
-     * @param array  $samples Sample profiles of this type (id => data)
-     *
-     * @return object
-     */
-    private function findProfile(string $mapper, int $id, array $samples = []) : object
-    {
-        $result = $id > 0
-            ? $mapper::getAll()->where('id', $id)->executeGetArray()
-            : [];
-
-        if (empty($result)) {
-            $model = $mapper::MODEL;
-            $model = new $model();
-
-            // @todo Remove the sample fallback once real data exists
-            if (isset($samples[$id])) {
-                $model->id   = $id;
-                $model->name = $samples[$id]['name'];
-            }
-
-            return $model;
+            return $view;
         }
 
-        return \reset($result);
-    }
+        $response->data['Content']->head->title .= ' ' . $guild->name;
+        $view->data['raidRank'] = $profiles->getRaidRanking()[$guild->id] ?? null;
 
-    /**
-     * Sample players, characters and guilds
-     *
-     * @return array{players:array, characters:array, guilds:array}
-     */
-    private function getSampleProfiles() : array
-    {
-        return include __DIR__ . '/../Application/Frontend/data/sample_profiles.php';
+        return $view;
     }
 
     public function petProfileView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
@@ -870,17 +899,7 @@ final class FrontendController extends ModuleAbstract
 
     public function contactView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        if ($request->getRouteVerb() === RouteVerb::GET) {
-            return $this->createView($request, $response, 'contact', 'Contact');
-        }
-
-        return $this->contactMessage($request, $response, $data);
-    }
-
-    public function contactMessage(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
-    {
-        // @todo Send/store the contact message
-        return $this->createView($request, $response, 'contact_confirmation', 'Contact');
+        return $this->createView($request, $response, 'contact', 'Contact');
     }
 
     public function imprintView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface

@@ -2,7 +2,8 @@
     <div class="auth-box panel">
         <h1>Create account</h1>
         <p class="muted">One account for the game, the website and the community.</p>
-        <form class="site-form" method="POST" action="/signup">
+        <form id="signup-form" class="site-form" method="POST" action="/api/account/signup">
+            <input type="hidden" name="CSRF" value="<?= \phpOMS\Uri\UriFactory::getQuery('$CSRF'); ?>">
             <div class="form-group">
                 <label for="signup-name">User name</label>
                 <input id="signup-name" type="text" name="name" autocomplete="username" minlength="3" maxlength="32" required>

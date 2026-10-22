@@ -25,6 +25,9 @@ $search     = $this->data['search'] ?? '';
         <input type="text" name="q" placeholder="FAQ" value="<?= $this->printHtml($search); ?>">
 
         <button type="submit">Search</button>
+        <?php if ($this->data['admin'] ?? false) : ?>
+            <a class="button" href="/admin/faq">Manage FAQ</a>
+        <?php endif; ?>
     </form>
 
     <?php foreach ($faqs as $faq) : ?>
@@ -34,7 +37,7 @@ $search     = $this->data['search'] ?? '';
                 <summary><h3><?= $this->printHtml($faq->question); ?></h3></summary>
                 <article>
                     <?= Markdown::parse($faq->answer); ?>
-                    <p class="faq-date"><?= $this->printHtml($faq->category); ?> &middot; <?= $faq->datetime->format('Y-m-d'); ?></p>
+                    <p class="faq-date"><?= $this->printHtml($faq->category); ?> &middot; <?= $faq->datetime->format('Y-m-d'); ?><?php if ($this->data['admin'] ?? false) : ?> &middot; <a href="/admin/faq/<?= $faq->id; ?>">Edit</a><?php endif; ?></p>
                 </article>
             </details>
         </div>

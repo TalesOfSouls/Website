@@ -7,11 +7,14 @@ $older   = $this->data['older'];
 <div class="floater">
     <div id="welcome-section">
         <h1><?= $this->printHtml($article['title']); ?></h1>
-        <p class="article-date"><?= $article['date']->format('F j, Y'); ?></p>
+        <p class="article-date"><?= $article['date']->format('F j, Y'); ?><?= $article['status'] !== 'published' ? ' &middot; <span class="badge">Draft</span>' : ($article['date'] > new \DateTime() ? ' &middot; <span class="badge planned">Scheduled</span>' : ''); ?></p>
     </div>
 </div>
 
 <div class="floater page-section">
+    <?php if ($this->data['admin'] ?? false) : ?>
+        <p class="admin-bar"><a class="button" href="/admin/news/<?= $article['id']; ?>">Edit post</a></p>
+    <?php endif; ?>
     <div class="panel prose">
         <?= $this->data['content']; ?>
     </div>

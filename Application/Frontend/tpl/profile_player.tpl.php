@@ -1,34 +1,31 @@
 <?php
 use Application\Frontend\Chart;
-use Application\Frontend\SampleAchievements;
-use Application\Frontend\SampleEncounters;
-use Application\Frontend\SampleSeasons;
+use Application\Frontend\Provider\AchievementData;
+use Application\Frontend\Provider\EncounterData;
+use Models\AchievementType;
 
 /** @var \phpOMS\Views\View $this */
-$profile    = $this->data['profile'];
-$tab        = $this->data['tab'] ?? 'overview';
-$encounters = $this->data['encounters'] ?? [];
-$samples = $this->data['sample'] ?? ['players' => [], 'characters' => [], 'guilds' => []];
+$profile = $this->data['profile'];
 
-if ($profile->id === 0) {
+if ($profile === null) {
     include __DIR__ . '/error/404.tpl.php';
     return;
 }
 
-// @todo Replace the sample values once accounts have real statistics
-$player = $samples['players'][$profile->id] ?? null;
-
-$characters = [];
-foreach ($player['characters'] ?? [] as $characterId) {
-    if (isset($samples['characters'][$characterId])) {
-        $characters[$characterId] = $samples['characters'][$characterId];
-    }
-}
+/** @var \Models\Account $profile */
+$tab        = $this->data['tab'] ?? 'overview';
+$encounters = $this->data['encounters'] ?? [];
+$characters = $this->data['characters'] ?? [];
+$stats      = $this->data['stats'] ?? [];
 
 $achievements       = $this->data['achievements'] ?? [];
-$achievementHistory = SampleAchievements::pointHistory($achievements);
+$achievementHistory = AchievementData::pointHistory($achievements);
 $achievementPoints  = \array_sum(\array_column($achievements, 'points'));
 $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
+
+$since = $profile->created ?? new \DateTime('2024-07-01');
+
+$listUrl = fn (int $p) : string => '/player/profile/' . $profile->id . '?tab=' . $tab . ($p > 1 ? '&amp;page=' . $p : '');
 ?>
 <div class="floater">
     <div class="profile-banner">
@@ -37,7 +34,7 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
             <div class="avatar"><?= $this->printHtml(\mb_substr($profile->name, 0, 1)); ?></div>
             <div>
                 <h1 class="profile-name"><?= $this->printHtml($profile->name); ?></h1>
-                <p class="profile-meta">Member since <?= $player['since'] ?? '-'; ?></p>
+                <p class="profile-meta">Member since <?= $since->format('Y-m-d'); ?><?= $profile->isDeveloper() ? ' <span class="badge planned">Developer</span>' : ''; ?></p>
             </div>
         </div>
     </div>
@@ -48,19 +45,17 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
         <a href="/player/profile/<?= $profile->id; ?>"<?= $tab === 'overview' ? ' class="active"' : ''; ?>>Overview</a>
         <a href="/player/profile/<?= $profile->id; ?>?tab=achievements"<?= $tab === 'achievements' ? ' class="active"' : ''; ?>>Achievements</a>
         <a href="/player/profile/<?= $profile->id; ?>?tab=seasons"<?= $tab === 'seasons' ? ' class="active"' : ''; ?>>Seasons</a>
-        <?php foreach (SampleEncounters::TYPES as $type => $typeTitle) : ?>
+        <?php foreach (EncounterData::TYPES as $type => $typeTitle) : ?>
             <a href="/player/profile/<?= $profile->id; ?>?tab=<?= $type; ?>"<?= $tab === $type ? ' class="active"' : ''; ?>><?= $typeTitle; ?></a>
         <?php endforeach; ?>
     </nav>
 
-    <div class="notice info">Profile statistics are sample values.</div>
-
 <?php if ($tab === 'overview') : ?>
     <div class="stat-tiles">
-        <div class="stat-tile"><span class="value"><?= isset($player) ? $player['playtime'] . ' h' : '-'; ?></span><span class="label">Playtime</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($stats['playtime'] ?? 0); ?> h</span><span class="label">Playtime</span></div>
         <div class="stat-tile"><span class="value"><?= \number_format($achievementPoints); ?></span><span class="label">Achievement points</span></div>
-        <div class="stat-tile"><span class="value"><?= $player['pvp_kills'] ?? '-'; ?></span><span class="label">PvP kills</span></div>
-        <div class="stat-tile"><span class="value"><?= $player['dungeons'] ?? '-'; ?></span><span class="label">Dungeons cleared</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($stats['pvp_kills'] ?? 0); ?></span><span class="label">PvP kills</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($stats['dungeons'] ?? 0); ?></span><span class="label">Dungeons cleared</span></div>
     </div>
 
     <div class="layout-halves">
@@ -69,14 +64,12 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
             <table class="content-table">
                 <thead><tr><th class="wf-100">Character</th><th>Class</th><th>Level</th><th>Guild</th></tr></thead>
                 <tbody>
-                <?php foreach ($characters as $characterId => $character) :
-                    $guild = $samples['guilds'][$character['guild']] ?? null;
-                ?>
+                <?php foreach ($characters as $characterId => $character) : ?>
                     <tr>
                         <td><a href="/player/character/profile/<?= $characterId; ?>"><?= $this->printHtml($character['name']); ?></a></td>
                         <td><?= $this->printHtml($character['class']); ?></td>
                         <td><?= $character['level']; ?></td>
-                        <td><?php if ($guild !== null) : ?><a href="/guild/profile/<?= $character['guild']; ?>"><?= $this->printHtml($guild['name']); ?></a><?php else : ?>-<?php endif; ?></td>
+                        <td><?php if ($character['guild'] > 0) : ?><a href="/guild/profile/<?= $character['guild']; ?>"><?= $this->printHtml($character['guild_name']); ?></a><?php else : ?>-<?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <?php if (empty($characters)) : ?>
@@ -91,6 +84,9 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                 <?php foreach ($recentUnlocks as $unlock) : ?>
                     <dt><?= $this->printHtml($unlock['title']); ?></dt><dd><?= $unlock['date']->format('Y-m-d'); ?></dd>
                 <?php endforeach; ?>
+                <?php if (empty($recentUnlocks)) : ?>
+                    <dt>No achievements yet</dt><dd></dd>
+                <?php endif; ?>
             </dl>
             <p><a href="/player/profile/<?= $profile->id; ?>?tab=achievements">All achievements</a></p>
         </div>
@@ -98,7 +94,6 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
 <?php elseif ($tab === 'achievements') :
     // Achievement points over time (cumulative)
     $points = [['x' => 0, 'y' => 0, 'title' => 'Account created']];
-    $since  = new \DateTime($player['since'] ?? '2024-07-01');
     foreach ($achievementHistory as $unlock) {
         $points[] = [
             'x'     => ($unlock['date']->getTimestamp() - $since->getTimestamp()) / 86400,
@@ -126,9 +121,10 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
         ]
     );
 
-    $maxPossible = \count($achievements) * \array_sum(SampleAchievements::TIER_POINTS);
-    $completed   = \count(\array_filter($achievements, fn ($a) => $a['reached'] === 5));
+    $maxPossible = \array_sum(\array_map(fn ($a) => \array_sum(\array_slice(AchievementType::TIER_POINTS, 0, \count($a['tiers']))), $achievements));
+    $completed   = \count(\array_filter($achievements, fn ($a) => $a['reached'] >= \count($a['tiers'])));
     $tiers       = \array_sum(\array_column($achievements, 'reached'));
+    $tiersTotal  = \array_sum(\array_map(fn ($a) => \count($a['tiers']), $achievements));
 
     $byCategory = [];
     foreach ($achievements as $achievement) {
@@ -143,7 +139,7 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
 
     <div class="stat-tiles">
         <div class="stat-tile"><span class="value"><?= \number_format($achievementPoints); ?></span><span class="label">Points of <?= \number_format($maxPossible); ?></span></div>
-        <div class="stat-tile"><span class="value"><?= $tiers; ?> / <?= \count($achievements) * 5; ?></span><span class="label">Tiers reached</span></div>
+        <div class="stat-tile"><span class="value"><?= $tiers; ?> / <?= $tiersTotal; ?></span><span class="label">Tiers reached</span></div>
         <div class="stat-tile"><span class="value"><?= $completed; ?> / <?= \count($achievements); ?></span><span class="label">Fully completed</span></div>
         <div class="stat-tile"><span class="value"><?= \round($achievementPoints / \max(1, $maxPossible) * 100); ?>%</span><span class="label">Completion</span></div>
     </div>
@@ -156,14 +152,15 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
             $categoryReached = \array_sum(\array_column($list, 'reached'));
         ?>
             <input type="radio" name="achievement-category" id="<?= $categoryId; ?>"<?= $n === 1 ? ' checked' : ''; ?>>
-            <label for="<?= $categoryId; ?>"><?= $this->printHtml($category); ?> <small class="muted"><?= $categoryReached; ?>/<?= \count($list) * 5; ?></small></label>
+            <label for="<?= $categoryId; ?>"><?= $this->printHtml($category); ?> <small class="muted"><?= $categoryReached; ?>/<?= \array_sum(\array_map(fn ($a) => \count($a['tiers']), $list)); ?></small></label>
         <?php endforeach; ?>
 
         <?php foreach ($byCategory as $category => $list) : ?>
         <div class="css-tab-panel">
         <div class="achievement-list">
         <?php foreach ($list as $achievement) :
-            $next      = $achievement['reached'] < 5 ? $achievement['tiers'][$achievement['reached']] : null;
+            $tierCount = \count($achievement['tiers']);
+            $next      = $achievement['reached'] < $tierCount ? $achievement['tiers'][$achievement['reached']] : null;
             $lower     = $achievement['reached'] === 0 ? 0 : $achievement['tiers'][$achievement['reached'] - 1];
             $tierShare = $next === null ? 100 : \round(($achievement['progress'] - $lower) / \max(1, $next - $lower) * 100);
             $lastDate  = empty($achievement['unlocked']) ? null : \end($achievement['unlocked']);
@@ -173,16 +170,16 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                     <span class="achievement-name"><?= $this->printHtml($achievement['name']); ?></span>
                     <span class="achievement-desc"><?= $this->printHtml($achievement['description']); ?></span>
                 </div>
-                <div class="achievement-tiers" title="<?= $achievement['reached']; ?> of 5 tiers reached">
-                    <?php for ($t = 1; $t <= 5; ++$t) : ?>
+                <div class="achievement-tiers" title="<?= $achievement['reached']; ?> of <?= $tierCount; ?> tiers reached">
+                    <?php for ($t = 1; $t <= $tierCount; ++$t) : ?>
                         <span class="tier<?= $t <= $achievement['reached'] ? ' reached' : ''; ?>"
-                            title="Tier <?= SampleAchievements::romanTier($t); ?>: <?= \number_format($achievement['tiers'][$t - 1]); ?> <?= $achievement['unit']; ?><?= isset($achievement['unlocked'][$t - 1]) ? ' - ' . $achievement['unlocked'][$t - 1]->format('Y-m-d') : ''; ?>"><?= SampleAchievements::romanTier($t); ?></span>
+                            title="Tier <?= AchievementData::romanTier($t); ?>: <?= \number_format($achievement['tiers'][$t - 1]); ?><?= isset($achievement['unlocked'][$t - 1]) ? ' - ' . $achievement['unlocked'][$t - 1]->format('Y-m-d') : ''; ?>"><?= AchievementData::romanTier($t); ?></span>
                     <?php endfor; ?>
                 </div>
                 <div class="achievement-progress">
                     <span class="share-bar"><span style="width: <?= $tierShare; ?>%"></span></span>
                     <span class="achievement-count">
-                        <?= \number_format($achievement['progress']); ?><?= $next !== null ? ' / ' . \number_format($next) : ''; ?> <?= $achievement['unit']; ?>
+                        <?= \number_format($achievement['progress']); ?><?= $next !== null ? ' / ' . \number_format($next) : ''; ?>
                     </span>
                 </div>
                 <div class="achievement-meta">
@@ -212,7 +209,7 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
         }
     }
 
-    $seasonDates = fn (array $s) : string => (new \DateTime($s['start']))->format('M Y') . ' - ' . (new \DateTime($s['end']))->format('M Y');
+    $seasonDates = fn (array $s) : string => $s['start']->format('M Y') . ' - ' . $s['end']->format('M Y');
 ?>
     <div class="stat-tiles">
         <div class="stat-tile"><span class="value"><?= \count($played); ?> / <?= \count($seasons); ?></span><span class="label">Seasons played</span></div>
@@ -225,14 +222,14 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
     <div class="panel season-detail">
         <h2>
             <?= $this->printHtml($selected['name']); ?>
-            <?php if (SampleSeasons::isCurrent($selected['season'])) : ?>
+            <?php if ($selected['current']) : ?>
                 <span class="badge progress">Current</span>
             <?php else : ?>
                 <span class="badge">Ended</span>
             <?php endif; ?>
         </h2>
         <p class="muted season-dates">
-            <?= (new \DateTime($selected['start']))->format('Y-m-d'); ?> - <?= (new \DateTime($selected['end']))->format('Y-m-d'); ?>
+            <?= $selected['start']->format('Y-m-d'); ?> - <?= $selected['end']->format('Y-m-d'); ?>
             &middot; World dungeon: <?= $this->printHtml($selected['dungeon']); ?>
         </p>
 
@@ -287,9 +284,9 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                     <tbody>
                     <?php foreach ($selected['characters'] as $character) : ?>
                         <tr>
-                            <td><?= $this->printHtml($character['name']); ?><?= $character['died'] ? ' <span class="badge closed">Died</span>' : ''; ?></td>
+                            <td><a href="/player/character/profile/<?= $character['id']; ?>"><?= $this->printHtml($character['name']); ?></a><?= $character['died'] ? ' <span class="badge closed">Died</span>' : ''; ?></td>
                             <td><?= $this->printHtml($character['class']); ?></td>
-                            <td><?= $character['level']; ?><?= $character['level'] >= SampleSeasons::MAX_LEVEL ? ' <small class="muted">max</small>' : ''; ?></td>
+                            <td><?= $character['level']; ?><?= $character['level'] >= \Application\Frontend\Provider\SeasonData::MAX_LEVEL ? ' <small class="muted">max</small>' : ''; ?></td>
                             <td><?= $character['created']->format('Y-m-d'); ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -341,7 +338,7 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                 <tr class="<?= $selected !== null && $selected['season'] === $id ? 'highlight' : ''; ?><?= $season['played'] ? '' : ' not-played'; ?>">
                     <td>
                         <a class="row-link" href="<?= $url; ?>"><?= $this->printHtml($season['name']); ?></a>
-                        <?php if (SampleSeasons::isCurrent($id)) : ?><span class="badge progress">Current</span><?php endif; ?>
+                        <?php if ($season['current']) : ?><span class="badge progress">Current</span><?php endif; ?>
                     </td>
                     <td class="nowrap"><?= $seasonDates($season); ?></td>
                     <td><?= $this->printHtml($season['dungeon']); ?></td>
@@ -368,16 +365,14 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
     </div>
 
 <?php elseif ($tab === 'pvp') :
-    $wins   = \count(\array_filter($encounters, fn ($m) => $m['success']));
-    $kills  = \array_sum(\array_map(fn ($m) => $m['self']['kills'], $encounters));
-    $deaths = \array_sum(\array_map(fn ($m) => $m['self']['deaths'], $encounters));
-    $latest = \reset($encounters);
+    $pvp    = $this->data['pvp'] ?? ['matches' => 0, 'wins' => 0, 'kills' => 0, 'deaths' => 0];
+    $rating = $this->data['rating'] ?? null;
 ?>
     <div class="stat-tiles">
-        <div class="stat-tile"><span class="value"><?= $latest ? $latest['rating_before'] + $latest['rating_change'] : '-'; ?></span><span class="label">Rating</span></div>
-        <div class="stat-tile"><span class="value"><?= $wins; ?> / <?= \count($encounters) - $wins; ?></span><span class="label">Wins / losses</span></div>
-        <div class="stat-tile"><span class="value"><?= empty($encounters) ? '-' : \round($wins / \count($encounters) * 100) . '%'; ?></span><span class="label">Win rate</span></div>
-        <div class="stat-tile"><span class="value"><?= \number_format($kills / \max(1, $deaths), 2); ?></span><span class="label">K/D ratio</span></div>
+        <div class="stat-tile"><span class="value"><?= $rating ?? '-'; ?></span><span class="label">Rating</span></div>
+        <div class="stat-tile"><span class="value"><?= $pvp['wins']; ?> / <?= $pvp['matches'] - $pvp['wins']; ?></span><span class="label">Wins / losses</span></div>
+        <div class="stat-tile"><span class="value"><?= $pvp['matches'] === 0 ? '-' : \round($pvp['wins'] / $pvp['matches'] * 100) . '%'; ?></span><span class="label">Win rate</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($pvp['kills'] / \max(1, $pvp['deaths']), 2); ?></span><span class="label">K/D ratio</span></div>
     </div>
 
     <div class="panel">
@@ -406,20 +401,24 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                     <td><a class="row-link" href="<?= $url; ?>"><?= $this->printHtml($match['title']); ?></a></td>
                     <td><?= $this->printHtml($match['location']); ?></td>
                     <td><span class="badge <?= $match['success'] ? 'done' : 'closed'; ?>"><?= $match['success'] ? 'Win' : 'Loss'; ?></span></td>
-                    <td><?= SampleEncounters::formatDuration($match['duration']); ?></td>
+                    <td><?= EncounterData::formatDuration($match['duration']); ?></td>
                     <td><?= $match['score']['own']; ?> : <?= $match['score']['enemy']; ?></td>
                     <td><?= $match['self']['kills']; ?> / <?= $match['self']['deaths']; ?> / <?= $match['self']['assists']; ?></td>
-                    <td><?= SampleEncounters::formatNumber($match['self']['damage']); ?></td>
-                    <td><?= SampleEncounters::formatNumber($match['self']['healing']); ?></td>
+                    <td><?= EncounterData::formatNumber($match['self']['damage']); ?></td>
+                    <td><?= EncounterData::formatNumber($match['self']['healing']); ?></td>
                     <td><?= $match['rating_before'] + $match['rating_change']; ?> <span class="<?= $match['rating_change'] >= 0 ? 'rating-up' : 'rating-down'; ?>">(<?= $match['rating_change'] >= 0 ? '+' : ''; ?><?= $match['rating_change']; ?>)</span></td>
                 </tr>
             <?php endforeach; ?>
+            <?php if (empty($encounters)) : ?>
+                <tr><td colspan="10">No matches recorded yet.</td></tr>
+            <?php endif; ?>
             </tbody>
         </table>
+        <?php $page = $this->data['page'] ?? 1; $pages = $this->data['pages'] ?? 1; $pageUrl = $listUrl; include __DIR__ . '/pager.tpl.php'; ?>
     </div>
 <?php else : ?>
     <div class="panel">
-        <h2><?= SampleEncounters::TYPES[$tab]; ?></h2>
+        <h2><?= EncounterData::TYPES[$tab]; ?></h2>
         <table class="content-table encounter-table">
             <thead>
                 <tr>
@@ -446,10 +445,10 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
                     <td><?= $this->printHtml($tab === 'worldboss' ? $encounter['location'] : $encounter['difficulty']); ?></td>
                     <td><?= $this->printHtml($encounter['self']['name']); ?></td>
                     <td><span class="badge <?= $encounter['success'] ? 'done' : 'closed'; ?>"><?= $encounter['success'] ? ($tab === 'dungeon' ? 'Cleared' : 'Kill') : 'Failed'; ?></span></td>
-                    <td><?= SampleEncounters::formatDuration($encounter['duration']); ?></td>
-                    <td><?= $tab === 'worldboss' ? \count($encounter['group']) : $encounter['killed'] . '/' . $encounter['total']; ?></td>
-                    <td><?= SampleEncounters::formatNumber($encounter['self']['damage']); ?></td>
-                    <td><?= SampleEncounters::formatNumber($encounter['self']['healing']); ?></td>
+                    <td><?= EncounterData::formatDuration($encounter['duration']); ?></td>
+                    <td><?= $tab === 'worldboss' ? $encounter['players'] : $encounter['killed'] . '/' . $encounter['total']; ?></td>
+                    <td><?= EncounterData::formatNumber($encounter['self']['damage']); ?></td>
+                    <td><?= EncounterData::formatNumber($encounter['self']['healing']); ?></td>
                     <td><?= $encounter['self']['deaths']; ?></td>
                     <td>#<?= $encounter['rank']; ?></td>
                 </tr>
@@ -459,6 +458,7 @@ $recentUnlocks      = \array_slice(\array_reverse($achievementHistory), 0, 5);
             <?php endif; ?>
             </tbody>
         </table>
+        <?php $page = $this->data['page'] ?? 1; $pages = $this->data['pages'] ?? 1; $pageUrl = $listUrl; include __DIR__ . '/pager.tpl.php'; ?>
     </div>
 <?php endif; ?>
 </div>

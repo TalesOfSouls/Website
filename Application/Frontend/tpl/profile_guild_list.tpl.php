@@ -1,20 +1,7 @@
 <?php
-use phpOMS\Uri\UriFactory;
-
 /** @var \phpOMS\Views\View $this */
-$search  = \trim($this->request->getDataString('guild') ?? '');
-$samples = $this->data['sample'] ?? ['guilds' => []];
-
-// Sample guilds first, followed by the guilds from the database
-$rows = [];
-foreach ($samples['guilds'] as $id => $guild) {
-    $rows[] = ['id' => $id, 'name' => $guild['name'], 'server' => $guild['server'], 'members' => \count($guild['members'])];
-}
-
-foreach ($this->data['profiles'] as $profile) {
-    if ($profile->id == 1) { continue; }
-    $rows[] = ['id' => $profile->id, 'name' => $profile->name, 'server' => '-', 'members' => '-'];
-}
+$search = $this->data['search'] ?? '';
+$rows   = $this->data['rows'] ?? [];
 ?>
 <div class="floater">
     <div id="welcome-section">
@@ -24,40 +11,33 @@ foreach ($this->data['profiles'] as $profile) {
 
 <div id="ladder" class="page-section">
     <form class="floater filter-bar" method="GET" action="/guild/profile">
-        <input type="text" name="guild" placeholder="Guild" value="<?= $this->printHtml($search); ?>">
-
-        <input type="text" name="server" list="server_names" placeholder="Server">
-        <datalist id="server_names">
-            <option value="Test Server 1">
-            <option value="Test Server 2">
-        </datalist>
-
+        <input type="text" name="guild" placeholder="Guild or tag" value="<?= $this->printHtml($search); ?>">
         <button type="submit">Search</button>
     </form>
 
     <div class="floater">
-        <table class="content-table">
+        <table class="content-table encounter-table">
             <thead>
                 <tr>
                     <th class="wf-100">Guild</th>
+                    <th>Tag</th>
                     <th>Server</th>
                     <th>Members</th>
+                    <th>Recruiting</th>
                 </tr>
             </thead>
             <tbody>
-                <?php $c = 0; foreach ($rows as $row) :
-                    if ($search !== '' && \stripos($row['name'], $search) === false) { continue; }
-                    ++$c;
-                    $url = UriFactory::build('{/base}/guild/profile/' . $row['id']);
-                ?>
-                    <tr data-href="<?= $url; ?>">
-                        <td><a href="<?= $url; ?>"><?= $this->printHtml($row['name']); ?></a></td>
-                        <td class="nowrap"><?= $this->printHtml($row['server']); ?></td>
-                        <td><?= $row['members']; ?></td>
+                <?php foreach ($rows as $row) : ?>
+                    <tr>
+                        <td><a class="row-link" href="/guild/profile/<?= $row['id']; ?>"><?= $this->printHtml($row['name']); ?></a></td>
+                        <td><?= $this->printHtml($row['tag']); ?></td>
+                        <td class="nowrap"><?= $this->printHtml($row['server'] ?? '-'); ?></td>
+                        <td><?= (int) $row['members']; ?></td>
+                        <td><?= $row['recruiting'] ? '<span class="badge done">Yes</span>' : '<span class="badge">No</span>'; ?></td>
                     </tr>
                 <?php endforeach; ?>
-                <?php if ($c === 0) : ?>
-                    <tr><td colspan="3">No guilds found.</td></tr>
+                <?php if (empty($rows)) : ?>
+                    <tr><td colspan="5">No guilds found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

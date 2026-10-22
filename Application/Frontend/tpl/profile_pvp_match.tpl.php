@@ -1,6 +1,6 @@
 <?php
 use Application\Frontend\Chart;
-use Application\Frontend\SampleEncounters;
+use Application\Frontend\Provider\EncounterData;
 
 /** @var \phpOMS\Views\View $this */
 $profile = $this->data['profile'];
@@ -32,7 +32,7 @@ foreach (['own', 'enemy'] as $side) {
         $points[] = [
             'x'     => $event['time'],
             'y'     => $event[$side],
-            'title' => SampleEncounters::formatDuration($event['time']) . ' - ' . $teamNames[$side] . ': '
+            'title' => EncounterData::formatDuration($event['time']) . ' - ' . $teamNames[$side] . ': '
                 . $event[$side] . ' ' . $match['unit'],
         ];
     }
@@ -61,7 +61,7 @@ $scoreChart = Chart::line($series, [
     'yTicks'  => $yTicks,
     'yFormat' => fn ($v) => (string) \round($v),
     'xTicks'  => $xTicks,
-    'xFormat' => fn ($v) => SampleEncounters::formatDuration((int) $v),
+    'xFormat' => fn ($v) => EncounterData::formatDuration((int) $v),
 ]);
 
 $backUrl = '/player/profile/' . $profile->id . '?tab=pvp';
@@ -79,11 +79,10 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=pvp';
 </div>
 
 <div class="floater page-section">
-    <div class="notice info">All values are sample data.</div>
 
     <div class="stat-tiles">
         <div class="stat-tile"><span class="value"><?= $match['score']['own']; ?> : <?= $match['score']['enemy']; ?></span><span class="label">Final score (<?= $this->printHtml($match['unit']); ?>)</span></div>
-        <div class="stat-tile"><span class="value"><?= SampleEncounters::formatDuration($match['duration']); ?></span><span class="label">Duration</span></div>
+        <div class="stat-tile"><span class="value"><?= EncounterData::formatDuration($match['duration']); ?></span><span class="label">Duration</span></div>
         <div class="stat-tile">
             <span class="value"><?= $match['rating_before'] + $match['rating_change']; ?>
                 <small class="<?= $match['rating_change'] >= 0 ? 'rating-up' : 'rating-down'; ?>"><?= $match['rating_change'] >= 0 ? '+' : ''; ?><?= $match['rating_change']; ?></small>
@@ -91,7 +90,7 @@ $backUrl = '/player/profile/' . $profile->id . '?tab=pvp';
             <span class="label">Rating</span>
         </div>
         <div class="stat-tile"><span class="value"><?= $self['kills']; ?> / <?= $self['deaths']; ?> / <?= $self['assists']; ?></span><span class="label"><?= $this->printHtml($self['name']); ?> K / D / A</span></div>
-        <div class="stat-tile"><span class="value"><?= SampleEncounters::formatNumber($self['damage']); ?></span><span class="label">Damage</span></div>
+        <div class="stat-tile"><span class="value"><?= EncounterData::formatNumber($self['damage']); ?></span><span class="label">Damage</span></div>
         <div class="stat-tile"><span class="value">#<?= $match['rank']; ?></span><span class="label">Damage rank</span></div>
     </div>
 

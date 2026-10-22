@@ -1,24 +1,13 @@
 <?php
 /** @var \phpOMS\Views\View $this */
-$areas = [
-    ['Engine core', 45],
-    ['Rendering', 30],
-    ['Networking', 15],
-    ['Game systems', 20],
-    ['World &amp; content', 10],
-    ['Website', 40],
-];
 
-$roadmap = [
-    ['done', 'Jul 2024', 'Game documentation', 'Concept, story and game systems are documented.'],
-    ['done', 'Jul 2024', 'First render', 'The engine opens a window and renders its first frame.'],
-    ['done', 'Jul 2024', 'Program structure', 'Hot reloadable game code, renderer abstraction, memory pools.'],
-    ['progress', '2026', 'Website', 'News, wiki, database, ladders and community pages.'],
-    ['planned', 'TBA', 'Beta 0.1.0 Dev Stream', 'A live look at the first playable build.'],
-    ['planned', 'TBA', 'Beta 0.1.0 Release', 'First closed beta for supporters.'],
-    ['planned', 'TBA', 'Release Dev Stream', 'Final preparations for the launch.'],
-    ['planned', 'TBA', 'Reset &amp; Release 1.0.0', 'Progress reset and official release.'],
-];
+/** @var \Models\Milestone[] $milestones */
+$milestones = $this->data['milestones'] ?? [];
+
+/** @var \Models\DevelopmentArea[] $areas */
+$areas = $this->data['areas'] ?? [];
+
+$stateTitles = ['done' => 'Done', 'progress' => 'In progress', 'planned' => 'Planned'];
 ?>
 <div class="floater">
     <div id="welcome-section">
@@ -27,16 +16,19 @@ $roadmap = [
 </div>
 
 <div class="floater page-section">
+    <?php if ($this->data['admin'] ?? false) : ?>
+        <p class="admin-bar"><a class="button" href="/admin/development">Edit roadmap &amp; progress</a></p>
+    <?php endif; ?>
     <div class="layout-split right">
         <div class="panel">
             <h2>Roadmap</h2>
             <ul class="timeline">
-                <?php foreach ($roadmap as $entry) : ?>
-                <li class="<?= $entry[0]; ?>">
-                    <span class="when"><?= $entry[1]; ?></span>
-                    <span class="badge <?= $entry[0]; ?>"><?= $entry[0] === 'done' ? 'Done' : ($entry[0] === 'progress' ? 'In progress' : 'Planned'); ?></span>
-                    <h4><?= $entry[2]; ?></h4>
-                    <p class="muted"><?= $entry[3]; ?></p>
+                <?php foreach ($milestones as $milestone) : ?>
+                <li class="<?= $this->printHtml($milestone->state); ?>">
+                    <span class="when"><?= $this->printHtml($milestone->when); ?></span>
+                    <span class="badge <?= $this->printHtml($milestone->state); ?>"><?= $stateTitles[$milestone->state] ?? $this->printHtml($milestone->state); ?></span>
+                    <h4><?= $this->printHtml($milestone->title); ?></h4>
+                    <p class="muted"><?= $this->printHtml($milestone->description); ?></p>
                 </li>
                 <?php endforeach; ?>
             </ul>
@@ -45,8 +37,8 @@ $roadmap = [
             <div class="panel">
                 <h2>Progress</h2>
                 <?php foreach ($areas as $area) : ?>
-                    <div><?= $area[0]; ?> <span class="muted">(<?= $area[1]; ?>%)</span></div>
-                    <div class="bar"><span style="width: <?= $area[1]; ?>%"></span></div>
+                    <div><?= $this->printHtml($area->name); ?> <span class="muted">(<?= $area->progress; ?>%)</span></div>
+                    <div class="bar"><span style="width: <?= \max(0, \min(100, $area->progress)); ?>%"></span></div>
                 <?php endforeach; ?>
                 <p class="muted">Rough estimates, updated with every dev update.</p>
             </div>

@@ -1,0 +1,194 @@
+[
+  {
+    "slug": "achievement",
+    "title": "Achievements",
+    "nav_title": "Achievement",
+    "content": "<p>Achievements reward you for exploring, fighting, crafting and competing. Most achievements have up to\nfive tiers - every tier raises the requirement and grants a better reward such as titles, cosmetics or\nachievement points that count towards the <a href=\"/ladder\">achievement ladder</a>.</p>\n\n<h2>Categories</h2>\n<ul>\n    <li><strong>Progression</strong> - reach the maximum level, complete story chapters</li>\n    <li><strong>Combat</strong> - defeat monsters, bosses and other players</li>\n    <li><strong>Exploration</strong> - discover locations, dungeons and hidden places</li>\n    <li><strong>Economy</strong> - collect gold, trade and craft</li>\n    <li><strong>Collection</strong> - items, pets, mounts and titles</li>\n</ul>\n",
+    "module": "achievements",
+    "nav_order": 18
+  },
+  {
+    "slug": "auction_house",
+    "title": "Auction House",
+    "nav_title": "Auction House",
+    "content": "<p>The auction house is the central market of Tales of Souls. Players can sell tradable items to other\nplayers on the same server.</p>\n<h2>How it works</h2>\n<ul>\n    <li>Set a minimum bid and an optional instant buyout price</li>\n    <li>Choose an auction duration</li>\n    <li>A small deposit is charged when listing; it is returned when the item sells</li>\n    <li>Sold items and gold are delivered by mail</li>\n</ul>\n<p>Only items of tradable item types and rarities can be listed. Check current offers on the\n<a href=\"/auction\">auction house page</a>.</p>\n",
+    "module": null,
+    "nav_order": 23
+  },
+  {
+    "slug": "class",
+    "title": "Classes",
+    "nav_title": "Classes",
+    "content": "<p>Every character starts with one of five base classes: <strong>Warrior</strong>, <strong>Outcast</strong>,\n<strong>Ranger</strong>, <strong>Caster</strong> or <strong>Summoner</strong>. As you progress you choose a\nspecialization that defines your play style, the equipment you can use and your role in a group.</p>\n\n<p>Use the <a href=\"/build/planner\">build planner</a> to theorycraft your character or browse the\n<a href=\"/build/list\">community builds</a> for inspiration.</p>\n",
+    "module": "classes",
+    "nav_order": 2
+  },
+  {
+    "slug": "community_content",
+    "title": "Community Content",
+    "nav_title": "Community Content",
+    "content": "<p>Tales of Souls is meant to be shaped by its players. Besides guides and builds, the community can create\ncontent that becomes part of the game.</p>\n<ul>\n    <li><strong>Builds</strong> - share your builds in the <a href=\"/build/list\">build list</a></li>\n    <li><strong>Guides</strong> - leveling guides for every class and game mode</li>\n    <li><strong>Tournaments</strong> - organize your own competitions</li>\n    <li><strong>Housing &amp; towns</strong> - design houses and towns other players can visit</li>\n    <li><strong>Feedback</strong> - suggest features on the <a href=\"/feedback\">feedback board</a></li>\n</ul>\n<p>Content that becomes part of the game requires accepting the <a href=\"/cla\">contributor license agreement</a>.</p>\n",
+    "module": null,
+    "nav_order": 12
+  },
+  {
+    "slug": "dungeon",
+    "title": "Dungeons",
+    "nav_title": "Dungeons",
+    "content": "<p>Dungeons are instanced areas with their own story, monsters and bosses. They can be played solo with NPC\ncompanions or in groups of up to five players.</p>\n<h2>Difficulties</h2>\n<table>\n    <thead><tr><th>Mode</th><th>Players</th><th>Description</th></tr></thead>\n    <tbody>\n        <tr><td>Solo-NPC</td><td>1</td><td>Play with NPC companions that fill the missing roles.</td></tr>\n        <tr><td>Normal</td><td>3 - 5</td><td>The regular group experience.</td></tr>\n        <tr><td>Heroic</td><td>5</td><td>Stronger enemies, additional mechanics and better loot.</td></tr>\n        <tr><td>Timed</td><td>5</td><td>Race against the clock for a spot on the <a href=\"/ladder\">ladder</a>.</td></tr>\n    </tbody>\n</table>\n<h2>World dungeons</h2>\n<p>World dungeons are open dungeons in the world that are shared with other players - expect competition\nand the occasional ambush.</p>\n<p><em>A list of dungeons will be published with the first beta.</em></p>\n",
+    "module": null,
+    "nav_order": 8
+  },
+  {
+    "slug": "guild",
+    "title": "Guilds",
+    "nav_title": "Guild",
+    "content": "<p>Guilds are communities of players. They share a guild bank, a guild hall and can claim territory in\nGuild vs. Guild battles.</p>\n<h2>Roles</h2>\n<ul>\n    <li><strong>Founder</strong> - full control over the guild</li>\n    <li><strong>Moderator</strong> - can invite, promote and manage members</li>\n    <li><strong>Member</strong> - regular guild members</li>\n</ul>\n<p>Guilds can additionally create custom ranks with individual permissions and define their focus\n(PvE, PvP, raids, dungeons, World vs. World) to make recruiting easier.</p>\n<p>Browse all guilds in the <a href=\"/guild/profile\">guild list</a>.</p>\n",
+    "module": null,
+    "nav_order": 16
+  },
+  {
+    "slug": "index",
+    "title": "Welcome to the Tales of Souls Wiki",
+    "nav_title": "Welcome to the Tales of Souls Wiki",
+    "content": "<p>Tales of Souls is an MMORPG set in a world shaped by the souls of those who came before. This wiki\ncollects everything we know about the world, its inhabitants and the systems of the game.</p>\n\n<h2>Getting started</h2>\n<ul>\n    <li><a href=\"/wiki/story\">Story</a> - the history of the world and its conflicts</li>\n    <li><a href=\"/wiki/race\">Races</a> - the peoples you can play</li>\n    <li><a href=\"/wiki/class\">Classes</a> - five base classes and their specializations</li>\n    <li><a href=\"/wiki/proficiency\">Proficiencies</a> - gathering and crafting professions</li>\n</ul>\n\n<h2>Adventure</h2>\n<ul>\n    <li><a href=\"/wiki/quest\">Quests</a>, <a href=\"/wiki/dungeon\">Dungeons</a> and <a href=\"/wiki/raid\">Raids</a></li>\n    <li><a href=\"/wiki/monster\">Monsters</a> and <a href=\"/wiki/location\">Locations</a></li>\n    <li><a href=\"/wiki/pvp\">PvP</a>, <a href=\"/wiki/tournament\">Tournaments</a> and <a href=\"/wiki/season\">Seasons</a></li>\n</ul>\n\n<h2>Items &amp; economy</h2>\n<ul>\n    <li><a href=\"/wiki/items\">Items</a> and <a href=\"/wiki/item/equipment\">Equipment</a></li>\n    <li><a href=\"/wiki/auction_house\">Auction House</a></li>\n    <li>The full <a href=\"/database\">item database</a></li>\n</ul>\n\n<h2>Social</h2>\n<ul>\n    <li><a href=\"/wiki/guild\">Guilds</a>, <a href=\"/wiki/town\">Towns</a> and <a href=\"/wiki/pet\">Pets</a></li>\n    <li><a href=\"/wiki/community_content\">Community Content</a> and <a href=\"/wiki/mini_game\">Mini Games</a></li>\n</ul>\n\n<p><em>All information is subject to change during development.</em></p>\n",
+    "module": null,
+    "nav_order": null
+  },
+  {
+    "slug": "item/equipment",
+    "title": "Equipment",
+    "nav_title": "Equipment",
+    "content": "<p>Your character has several equipment slots. Every slot accepts a set of equipment types -\nwhich of these you can use depends on your class. Equipment rolls attributes based on its type, level and\n<a href=\"/wiki/items\">rarity</a>.</p>\n",
+    "module": "equipment",
+    "nav_order": 6
+  },
+  {
+    "slug": "items",
+    "title": "Items",
+    "nav_title": "Items",
+    "content": "<p>Items are everything you can pick up, craft, trade or equip - from food and herbs to legendary weapons.\nEvery item belongs to an item type and equipment additionally has a rarity that determines how many and\nhow strong its attributes are.</p>\n\n<p>Looking for a specific item? Use the <a href=\"/database\">item database</a>.</p>\n",
+    "module": "items",
+    "nav_order": 4
+  },
+  {
+    "slug": "leaderboard",
+    "title": "Leaderboards",
+    "nav_title": "Leaderboards",
+    "content": "<p>The leaderboards (ladder) rank players, characters and guilds across many categories. They can be filtered by\nseason, server, mode and class.</p>\n<h2>Categories</h2>\n<ul>\n    <li>Level and speedruns</li>\n    <li>Achievements and discoveries</li>\n    <li>Raids, dungeons, trials, holdouts and jumping puzzles</li>\n    <li>PvP modes: arena, capture the flag, siege, world vs. world and more</li>\n    <li>Stats such as DPS, healing and health</li>\n</ul>\n<p>See the current standings on the <a href=\"/ladder\">ladder</a>.</p>\n",
+    "module": null,
+    "nav_order": 14
+  },
+  {
+    "slug": "location",
+    "title": "Locations",
+    "nav_title": "Locations",
+    "content": "<p>The world is divided into continents, regions and zones. Every region has its own climate, inhabitants,\nreputation and resources.</p>\n<h2>Types of locations</h2>\n<ul>\n    <li><strong>Cities</strong> - trade hubs with auction houses, banks and trainers</li>\n    <li><strong>Villages</strong> - small settlements with quests and merchants</li>\n    <li><strong>Wilderness</strong> - open areas for hunting and gathering</li>\n    <li><strong>Dungeons &amp; raids</strong> - instanced challenges</li>\n    <li><strong>Points of interest</strong> - hidden places that count towards discovery achievements</li>\n</ul>\n<p>See the <a href=\"/map\">world map</a> for an overview.</p>\n",
+    "module": null,
+    "nav_order": 21
+  },
+  {
+    "slug": "mini_game",
+    "title": "Mini Games",
+    "nav_title": "Mini Games",
+    "content": "<p>Not everything is about fighting. The world offers many mini games for a quieter evening.</p>\n<ul>\n    <li><strong>Fishing</strong> - catch rare fish in every region</li>\n    <li><strong>Jumping puzzles</strong> - reach hidden places with skill and patience</li>\n    <li><strong>Mount races</strong> - compete for the fastest time</li>\n    <li><strong>Holdouts</strong> - survive endless waves of enemies</li>\n    <li><strong>Dodging</strong> - avoid everything that is thrown at you</li>\n    <li><strong>Sailing</strong> - explore the seas with your own boat</li>\n    <li><strong>Card &amp; board games</strong> - play against NPCs and players in taverns</li>\n</ul>\n<p>Many mini games have their own <a href=\"/ladder\">ladder</a>.</p>\n",
+    "module": null,
+    "nav_order": 22
+  },
+  {
+    "slug": "monster",
+    "title": "Monsters",
+    "nav_title": "Monsters",
+    "content": "<p>The world is populated by animals, monsters and other creatures. Some are peaceful, some only defend\nthemselves and some hunt everything that moves.</p>\n<h2>Categories</h2>\n<ul>\n    <li><strong>Monsters</strong> - hostile creatures found in the wild and in dungeons</li>\n    <li><strong>Animals</strong> - wildlife that can be hunted for meat, leather and other materials</li>\n    <li><strong>Fish</strong> - caught with the Fishing proficiency</li>\n    <li><strong>Pets</strong> - creatures that can be tamed and raised</li>\n    <li><strong>Farm animals</strong> - cows, chickens, pigs and more for your town</li>\n</ul>\n<h2>Ranks</h2>\n<table>\n    <thead><tr><th>Rank</th><th>Description</th></tr></thead>\n    <tbody>\n        <tr><td>Regular</td><td>Common enemies.</td></tr>\n        <tr><td>Elite</td><td>Stronger variants with additional abilities.</td></tr>\n        <tr><td>Champion</td><td>Rare enemies with guaranteed loot.</td></tr>\n        <tr><td>Boss</td><td>Dungeon and raid bosses.</td></tr>\n        <tr><td>Final Boss</td><td>The last boss of a dungeon or raid.</td></tr>\n        <tr><td>World Boss</td><td>Bosses in the open world that require many players.</td></tr>\n        <tr><td>Singularity</td><td>Unique, legendary creatures. Only one exists at a time.</td></tr>\n    </tbody>\n</table>\n",
+    "module": null,
+    "nav_order": 10
+  },
+  {
+    "slug": "pet",
+    "title": "Pets",
+    "nav_title": "Pets",
+    "content": "<p>Many creatures can be tamed and raised as pets. Pets accompany you in the world, help in combat and\ncompete in <a href=\"/pet/battle\">pet battles</a>.</p>\n<h2>Raising pets</h2>\n<ul>\n    <li><strong>Taming</strong> - wild creatures can be tamed with the Taming proficiency</li>\n    <li><strong>Breeding</strong> - combine two pets to pass on their traits</li>\n    <li><strong>Training</strong> - pets gain experience and learn new abilities</li>\n    <li><strong>Day care</strong> - leave your pets in the <a href=\"/pet/daycare\">day care</a> while you are offline</li>\n</ul>\n<p>Pets can additionally be equipped with pet equipment.</p>\n",
+    "module": null,
+    "nav_order": 20
+  },
+  {
+    "slug": "proficiency",
+    "title": "Proficiencies",
+    "nav_title": "Proficiencies",
+    "content": "<p>Proficiencies are the professions of Tales of Souls. Gathering proficiencies such as Mining, Woodcutting,\nFishing or Diving provide raw materials, while crafting proficiencies such as Forging, Tailoring, Brewing or\nCooking turn them into useful items. Every character can learn all proficiencies - but mastering them takes time,\nthe right tools and plenty of practice.</p>\n\n<p>See the <a href=\"/craft\">crafting overview</a> for recipes and tools.</p>\n",
+    "module": "proficiencies",
+    "nav_order": 3
+  },
+  {
+    "slug": "pvp",
+    "title": "PvP",
+    "nav_title": "PvP",
+    "content": "<p>Player versus player combat is available in the open world and in many dedicated game modes. Arena and\nbattleground modes normalize your equipment so that skill matters more than gear.</p>\n<table>\n    <thead><tr><th>Mode</th><th>Description</th></tr></thead>\n    <tbody>\n        <tr><td>Arena</td><td>Small team fights (1v1, 2v2, 3v3).</td></tr>\n        <tr><td>Capture the Flag</td><td>Steal the enemy flag and bring it home.</td></tr>\n        <tr><td>Team Deathmatch</td><td>The team with the most kills wins.</td></tr>\n        <tr><td>Capture the Objective(s)</td><td>Control points on the map to score.</td></tr>\n        <tr><td>Escort</td><td>Escort or stop a moving objective.</td></tr>\n        <tr><td>Siege</td><td>Attack or defend a fortress.</td></tr>\n        <tr><td>MOBA</td><td>Push lanes and destroy the enemy base.</td></tr>\n        <tr><td>Battle Royale</td><td>Last player standing.</td></tr>\n        <tr><td>World vs. World</td><td>Servers fight for control over a huge map.</td></tr>\n        <tr><td>Guild vs. Guild</td><td>Guilds fight for territory.</td></tr>\n        <tr><td>Pet Battles</td><td>Turn based <a href=\"/pet/battle\">pet duels</a>.</td></tr>\n    </tbody>\n</table>\n",
+    "module": null,
+    "nav_order": 15
+  },
+  {
+    "slug": "quest",
+    "title": "Quests",
+    "nav_title": "Quests",
+    "content": "<p>Quests guide you through the world and its stories. Many of them are small mysteries that can be solved in\nmore than one way - the outcome depends on what you investigate, whom you trust and which choices you make.</p>\n<h2>Quest types</h2>\n<ul>\n    <li><strong>Story quests</strong> - the main storyline, chapter by chapter</li>\n    <li><strong>Side quests</strong> - local stories, often with multiple endings</li>\n    <li><strong>Class quests</strong> - unlock specializations and class specific rewards</li>\n    <li><strong>Daily &amp; weekly quests</strong> - repeatable tasks for reputation and currency</li>\n    <li><strong>Event quests</strong> - only available during world events</li>\n</ul>\n<h2>Example side quests</h2>\n<table>\n    <thead><tr><th>Quest</th><th>Premise</th></tr></thead>\n    <tbody>\n        <tr><td>The Widow's Tiara</td><td>A beautiful silver tiara lies in an abandoned crypt...</td></tr>\n        <tr><td>The Ring of Ashes</td><td>You find a wedding ring near a river.</td></tr>\n        <tr><td>The Ghost Paths</td><td>A ghost lantern reveals glowing footprints.</td></tr>\n        <tr><td>The Crimson Masquerade</td><td>A noble invites you to an extravagant masked ball.</td></tr>\n        <tr><td>The Poisoned Well</td><td>A village's water has become poisonous.</td></tr>\n        <tr><td>The House of Little Shadows</td><td>Children laugh inside an abandoned mansion.</td></tr>\n    </tbody>\n</table>\n",
+    "module": null,
+    "nav_order": 7
+  },
+  {
+    "slug": "race",
+    "title": "Races",
+    "nav_title": "Races",
+    "content": "<p>The world of Tales of Souls is home to many peoples. Every race comes with its own history, homeland,\naffiliations and appearance options. Your race shapes how NPCs react to you and which regions consider you\na friend - but it never locks you out of a class.</p>\n\n<p>Most races belong to one of the great families: <strong>Humans</strong>, <strong>Dwarves</strong>,\n<strong>Elves</strong>, <strong>Beasts</strong>, the cursed bloodlines of the <strong>Styx</strong>,\nthe <strong>Fellborn</strong> and the reptilian <strong>Veyssar</strong>.</p>\n",
+    "module": "races",
+    "nav_order": 1
+  },
+  {
+    "slug": "raid",
+    "title": "Raids",
+    "nav_title": "Raids",
+    "content": "<p>Raids are the ultimate group challenge: large instanced encounters for 10 to 25 players with multiple\nbosses, complex mechanics and the best loot in the game.</p>\n<h2>Raid structure</h2>\n<ul>\n    <li>Every raid consists of several wings with 2 - 4 bosses each</li>\n    <li>Loot is distributed individually - no loot drama</li>\n    <li>A weekly lockout limits how often you can receive loot</li>\n    <li>The first guilds to clear a raid are immortalized in the <a href=\"/ladder\">raid ladder</a></li>\n</ul>\n<h2>Boss ranks</h2>\n<p>Enemies are ranked as Regular, Elite, Champion, Boss, Final Boss, World Boss and Singularity. Raids\nfeature the Boss and Final Boss ranks.</p>\n<p>Watch the best raid runs in the <a href=\"/recordings\">recordings</a>.</p>\n",
+    "module": null,
+    "nav_order": 9
+  },
+  {
+    "slug": "season",
+    "title": "Seasons",
+    "nav_title": "Seasons",
+    "content": "<p>Seasons are time limited leagues that start on fresh characters. Every season introduces new mechanics,\nitems or rules and has its own <a href=\"/ladder\">ladder</a> and rewards.</p>\n<h2>Modes</h2>\n<table>\n    <thead><tr><th>Mode</th><th>Description</th></tr></thead>\n    <tbody>\n        <tr><td>SC (Softcore)</td><td>Death is not permanent.</td></tr>\n        <tr><td>HC (Hardcore)</td><td>Your character is gone when it dies.</td></tr>\n        <tr><td>SF (Self found)</td><td>No trading - only use what you find or craft.</td></tr>\n        <tr><td>S (Solo)</td><td>No grouping with other players.</td></tr>\n        <tr><td>SSF (Solo self found)</td><td>Solo and self found combined.</td></tr>\n        <tr><td>GF (Guild found)</td><td>Trading is only possible within your guild.</td></tr>\n    </tbody>\n</table>\n<p>At the end of a season, characters are transferred to the permanent servers.</p>\n",
+    "module": null,
+    "nav_order": 13
+  },
+  {
+    "slug": "skill",
+    "title": "Skills",
+    "nav_title": "Skill",
+    "content": "<p>Skills are the abilities your character uses in combat and beyond. Every class has its own skill tree and\nspecializations unlock additional branches. Skills scale with your primary attributes and can be modified by\nequipment, enchantments and passive nodes.</p>\n<h2>Skill types</h2>\n<ul>\n    <li><strong>Active skills</strong> - abilities you place on your action bar</li>\n    <li><strong>Passive skills</strong> - permanent bonuses unlocked in the skill tree</li>\n    <li><strong>Modifiers</strong> - change how an active skill behaves (range, area, damage type, ...)</li>\n    <li><strong>Ultimate skills</strong> - powerful abilities with long cooldowns, unique per specialization</li>\n</ul>\n<h2>Damage types</h2>\n<p>Skills deal physical (piercing, slashing, bludgeoning, stabbing), elemental (fire, water, wind, earth,\nlightning, ice, poison) or magical (arcane, corrupted, holy) damage. Every damage type is countered by its own\ndefense value.</p>\n<p>Plan your skills in the <a href=\"/build/planner\">build planner</a>. Individual skills will be listed in the\n<a href=\"/database\">database</a> once they are finalized.</p>\n",
+    "module": null,
+    "nav_order": 5
+  },
+  {
+    "slug": "story",
+    "title": "Story",
+    "nav_title": "Story",
+    "content": "<p>Long before the first kingdoms rose, the world was bound together by the souls of the dead. Every soul\nthat passed on left a fragment of itself behind - memories, skills, regrets - woven into the land itself.</p>\n<p>When the Styx, a cursed river that devours souls, broke its banks, the balance shattered. Whole peoples\nwere changed: elves turned to blood, dwarves to ash and the dead began to walk again. The surviving\nkingdoms are now divided between those who want to seal the Styx and those who hope to use its power.</p>\n<p>You are one of the few who can hear the fragments of the departed. Their tales will guide you - and\nsometimes mislead you.</p>\n<p><em>The full story is told through the story quests. This page avoids major spoilers.</em></p>\n",
+    "module": null,
+    "nav_order": 17
+  },
+  {
+    "slug": "tournament",
+    "title": "Tournaments",
+    "nav_title": "Tournaments",
+    "content": "<p>Tournaments are organized competitions with brackets, schedules and rewards. They are hosted by us or by\nthe community and cover PvP, pet battles, speedruns and more.</p>\n<h2>Formats</h2>\n<ul>\n    <li><strong>Single elimination</strong> - lose once and you are out</li>\n    <li><strong>Double elimination</strong> - a second chance through the lower bracket</li>\n    <li><strong>Round robin</strong> - everybody plays against everybody in a group</li>\n    <li><strong>Swiss</strong> - players with similar records face each other</li>\n</ul>\n<p>Tournament matches are recorded and can be watched in the <a href=\"/recordings\">recordings</a>.</p>\n",
+    "module": null,
+    "nav_order": 11
+  },
+  {
+    "slug": "town",
+    "title": "Towns",
+    "nav_title": "Town",
+    "content": "<p>Players can found and manage their own towns. Towns grow over time and attract NPC residents that offer\nservices, produce goods and protect the town.</p>\n<h2>Features</h2>\n<ul>\n    <li>Build and upgrade houses, workshops, farms and defenses</li>\n    <li>Attract residents with jobs and housing</li>\n    <li>Raise farm animals and grow crops</li>\n    <li>Rent houses to other players</li>\n    <li>Host events and markets</li>\n</ul>\n<p>Manage your town in the <a href=\"/profile/town\">town management</a>.</p>\n",
+    "module": null,
+    "nav_order": 19
+  }
+]

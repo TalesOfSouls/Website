@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace Application\Frontend;
 
+use Models\AccountMapper;
+use Models\AccountStatus;
 use Models\CoreSettings;
 use phpOMS\Account\Account;
 use phpOMS\Account\AccountManager;
@@ -65,6 +67,14 @@ final class Application
      * @since 1.0.0
      */
     private array $config;
+
+    /**
+     * Signed in account (website model)
+     *
+     * @var null|\Models\Account
+     * @since 1.0.0
+     */
+    private ?\Models\Account $accountModel = null;
 
     /**
      * Constructor.
@@ -148,6 +158,13 @@ final class Application
 
         $pageView->head = $head;
         $response->set('Content', $pageView);
+
+        // Signed in account & status message of the last form post (see Controller\ApiController::respond())
+        $pageView->data['account'] = $this->accountModel;
+        $pageView->data['flash']   = $this->app->sessionManager->get('flash');
+        if ($pageView->data['flash'] !== null) {
+            $this->app->sessionManager->remove('flash');
+        }
 
         /* Database OK? */
         if ($this->app->dbPool->get()->getStatus() !== DatabaseStatus::OK) {
@@ -247,18 +264,37 @@ final class Application
         );
     }
 
+    /**
+     * Load the signed in account
+     *
+     * @param int $uid Account id from the session
+     *
+     * @return Account
+     *
+     * @since 1.0.0
+     */
     private function loadAccount(int $uid) : Account
     {
-        return new NullAccount();
-
-        /** @var Account $account */
-        $account = AccountMapper::getWithPermissions($uid);
-
-        if ($account instanceof ModelsNullAccount) {
-            $account = new NullAccount();
+        if ($uid < 1) {
+            return new NullAccount();
         }
 
+        /** @var \Models\Account $model */
+        $model = AccountMapper::get()->where('id', $uid)->execute();
+
+        if ($model->id === 0 || $model->status !== AccountStatus::ACTIVE) {
+            Auth::logout($this->app->sessionManager);
+
+            return new NullAccount();
+        }
+
+        $account        = new Account($model->id);
+        $account->login = $model->name;
+        $account->name1 = $model->name;
+        $account->email = $model->email;
+
         $this->app->accountManager->add($account);
+        $this->accountModel = $model;
 
         return $account;
     }
@@ -289,8 +325,8 @@ final class Application
         // The .htaccess lets browsers cache css for 31 days, the file time makes sure changes are loaded
         $head->addAsset(AssetType::CSS, 'Application/Frontend/css/frontend.css?v=' . (\filemtime(__DIR__ . '/css/frontend.css') ?: '1.0.0'), ['defer']);
 
-        // Framework
-        $head->addAsset(AssetType::JS, 'Application/Frontend/js/frontend.min.js?v=1.0.0', ['nonce' => $scriptSrc, 'type' => 'module', 'defer']);
+        // Framework: jsOMS (the forms are sent to the api), see js/frontend.js
+        $head->addAsset(AssetType::JS, 'Application/Frontend/js/frontend.js?v=' . (\filemtime(__DIR__ . '/js/frontend.js') ?: '1.0.0'), ['nonce' => $scriptSrc, 'type' => 'module', 'defer']);
 
         if ($request->hasData('debug')) {
             $head->addAsset(AssetType::CSS, 'cssOMS/debug.css?v=1.0.0');

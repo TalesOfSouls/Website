@@ -3,14 +3,14 @@
  * Character statistics of a dungeon run, raid, world boss fight or PvP team
  *
  * Expects:
- *   $members       array    Members incl. detailed stats (see SampleEncounters::detailedStats)
+ *   $members       array    Members incl. detailed stats (see EncounterData::detailedStats)
  *   $statsId       string   Unique id of this block (used for the tabs)
  *   $selfName      string   Name of the character of the profile owner (highlighted)
  *   $characterLink callable Renders the character name/link
  *
  * The tabs work without JavaScript (radio buttons + CSS).
  */
-use Application\Frontend\SampleEncounters;
+use Application\Frontend\Provider\EncounterData;
 
 /** @var \phpOMS\Views\View $this */
 $tabs = [
@@ -28,7 +28,7 @@ $sortBy = function (array $list, string $key) : array {
     return $list;
 };
 
-$fmt = fn ($v) => SampleEncounters::formatNumber($v);
+$fmt = fn ($v) => EncounterData::formatNumber($v);
 $pct = fn ($v, $max) => \round($v / \max(1, $max) * 100, 1);
 ?>
 <div class="css-tabs">

@@ -1,77 +1,50 @@
 <?php
 use Application\Frontend\Chart;
-use Application\Frontend\SampleCharacterHistory;
+use Application\Frontend\Provider\CharacterData;
+use Application\Frontend\Provider\SeasonData;
 use Models\EquipmentSlotMapper;
 
 /** @var \phpOMS\Views\View $this */
 $profile = $this->data['profile'];
-$samples = $this->data['sample'] ?? ['players' => [], 'characters' => [], 'guilds' => []];
 
-if ($profile->id === 0) {
+if ($profile === null) {
     include __DIR__ . '/error/404.tpl.php';
     return;
 }
 
+/** @var \Models\Character $profile */
+$character   = $this->data['character'];
+$equipment   = $this->data['equipment'] ?? [];
+$professions = $this->data['professions'] ?? [];
+$progression = $this->data['progression'] ?? [];
+$rank        = $this->data['rank'] ?? null;
+
+/** @var null|\Models\CharacterLog $statistics */
+$statistics = $this->data['statistics'] ?? null;
+
 $slots = EquipmentSlotMapper::getAll()->executeGetArray();
 
-// @todo Replace the sample values once the character table is filled by the game servers
-$character = $samples['characters'][$profile->id] ?? null;
-$player    = $samples['players'][$character['player'] ?? 0] ?? null;
-$guild     = $samples['guilds'][$character['guild'] ?? 0] ?? null;
-
-// @todo Sample equipment until the character equipment is stored
-$sampleItems = [
-    'Head'            => ['Runed Helmet', 'Hood of the Pale Abbot', 'Iron Coif'],
-    'Neck'            => ['Ember Pendant', 'Moonstone Amulet', 'Chain of the Drowned'],
-    'Shoulder'        => ['Ashen Pauldrons', 'Mantle of Whispers', 'Steel Spaulders'],
-    'Back'            => ['Cloak of the Styx', 'Wolfhide Cape', 'Traveler\'s Cloak'],
-    'Body'            => ['Dragonscale Chestplate', 'Robe of Embers', 'Leather Jerkin'],
-    'Arms'            => ['Forged Vambraces', 'Silk Wraps', 'Bracers of Thorns'],
-    'Belt'            => ['Girdle of the Tyrant', 'Rope Belt', 'Studded Belt'],
-    'Belt Attachment' => ['Healing Flask', 'Pouch of Runes', 'Throwing Knives'],
-    'Pants'           => ['Plated Greaves', 'Moonweave Trousers', 'Linen Pants'],
-    'Boots'           => ['Dragonscale Boots', 'Boots of Haste', 'Worn Boots'],
-    'Ring'            => ['Band of Ashes', 'Signet of the Choir', 'Copper Ring'],
-    'Hand 1'          => ['Steel Longsword', 'Staff of the Moon', 'Runed Axe'],
-    'Hand 2'          => ['Tower Shield', 'Spellbook of Frost', 'Parrying Dagger'],
-    'Artifact'        => ['Shard of the Styx', 'Heart of Embers', 'Old Compass'],
-];
-
-$rarities  = ['orange', 'yellow', 'blue', 'white'];
-$equipment = [];
-if ($character !== null) {
-    foreach ($slots as $index => $slot) {
-        $pool = $sampleItems[$slot->name] ?? [];
-        if (empty($pool) || ($character['level'] < 30 && $index % 3 === 2)) {
-            continue; // low level characters have free slots
-        }
-
-        $seed  = $profile->id + $index;
-        $level = \max(1, $character['level'] - $seed % 4);
-
-        $equipment[$slot->id] = [
-            'name'   => $pool[$seed % \count($pool)],
-            'rarity' => $rarities[\min(3, \intdiv(99 - $character['level'], 20) + $seed % 2)],
-            'level'  => $level,
-        ];
-    }
-}
-
 $stats = [
-    'Health' => '12,450', 'Resource' => '1,200', 'Strength' => 120, 'Agility' => 85,
-    'Intelligence' => 40, 'Dexterity' => 60, 'Accuracy' => 55, 'Stamina' => 140,
+    'Race'     => $this->printHtml($this->data['race'] ?? '-'),
+    'Created'  => $character['created'] !== null ? $character['created']->format('Y-m-d') : '-',
 ];
+
+if ($statistics !== null) {
+    $stats += [
+        'Gold'           => \number_format($statistics->gold),
+        'Monsters slain' => \number_format($statistics->mobsKilled),
+        'Players slain'  => \number_format($statistics->playersKilled),
+        'Dungeons'       => \number_format($statistics->dungeonsSuccess) . ' / ' . \number_format($statistics->dungeons),
+        'Raids'          => \number_format($statistics->raidsSuccess) . ' / ' . \number_format($statistics->raids),
+        'PvP matches'    => \number_format($statistics->pvp),
+    ];
+}
 
 $tab = $this->data['tab'] ?? 'overview';
 
 // Level progression chart
-$levelChart  = '';
-$professions = [];
-if ($character !== null) {
-    $created     = $player['since'] ?? '2024-07-01';
-    $progression = SampleCharacterHistory::levelProgression($profile->id, $character['level'], $character['playtime'], $created);
-    $professions = SampleCharacterHistory::professions($profile->id, $character['level']);
-
+$levelChart = '';
+if (\count($progression) > 1) {
     $points = [];
     foreach ($progression as $step) {
         $points[] = [
@@ -83,14 +56,15 @@ if ($character !== null) {
 
     $maxHours = \max(1, \end($progression)['hours']);
     $tickStep = \max(1, (int) (\ceil($maxHours / 6 / 5) * 5));
+    $maxLevel = $character['season'] !== null ? SeasonData::MAX_LEVEL : 99;
 
     $levelChart = Chart::line(
         [['label' => 'Level ' . $character['level'], 'class' => 's-hp', 'points' => $points]],
         [
             'label'   => 'Level progression',
             'xMax'    => $maxHours,
-            'yMax'    => 100,
-            'yTicks'  => [1, 25, 50, 75, 99],
+            'yMax'    => $maxLevel + 1,
+            'yTicks'  => $maxLevel === 99 ? [1, 25, 50, 75, 99] : [1, 20, 40, 60],
             'xTicks'  => \range(0, (int) $maxHours, $tickStep),
             'xFormat' => fn ($v) => $v . ' h',
         ]
@@ -111,13 +85,14 @@ $eventUrl = function (array $params) use ($profile) : string {
             <div>
                 <h1 class="profile-name"><?= $this->printHtml($profile->name); ?></h1>
                 <p class="profile-meta">
-                    <?= $character !== null ? 'Level ' . $character['level'] . ' ' . $this->printHtml($character['class']) . ' &middot; ' . $this->printHtml($character['server']) : '-'; ?>
-                    <?php if ($guild !== null) : ?>
-                        &middot; <a class="text-link" href="/guild/profile/<?= $character['guild']; ?>">&lt;<?= $this->printHtml($guild['name']); ?>&gt;</a>
+                    Level <?= $character['level']; ?> <?= $this->printHtml($character['class']); ?> &middot; <?= $this->printHtml($character['server']); ?>
+                    <?php if ($character['guild'] > 0) : ?>
+                        &middot; <a class="text-link" href="/guild/profile/<?= $character['guild']; ?>">&lt;<?= $this->printHtml($character['guild_name']); ?>&gt;</a>
                     <?php endif; ?>
-                    <?php if ($player !== null) : ?>
-                        &middot; Player: <a class="text-link" href="/player/profile/<?= $character['player']; ?>"><?= $this->printHtml($player['name']); ?></a>
-                    <?php endif; ?>
+                    &middot; Player: <a class="text-link" href="/player/profile/<?= $character['player']; ?>"><?= $this->printHtml($character['player_name']); ?></a>
+                    <?php if ($character['season'] !== null) : ?> <span class="badge planned">Seasonal</span><?php endif; ?>
+                    <?php if ($character['hardcore']) : ?> <span class="badge progress">Hardcore</span><?php endif; ?>
+                    <?php if ($character['dead']) : ?> <span class="badge closed">Dead</span><?php endif; ?>
                 </p>
             </div>
         </div>
@@ -130,14 +105,13 @@ $eventUrl = function (array $params) use ($profile) : string {
         <a href="/player/character/profile/<?= $profile->id; ?>?tab=log"<?= $tab === 'log' ? ' class="active"' : ''; ?>>Event log</a>
     </nav>
 
-    <div class="notice info">Character details are sample values.</div>
 <?php if ($tab === 'overview') : ?>
 
     <div class="stat-tiles">
-        <div class="stat-tile"><span class="value"><?= $character['level'] ?? '-'; ?></span><span class="label">Level</span></div>
-        <div class="stat-tile"><span class="value"><?= isset($character) ? $character['playtime'] . ' h' : '-'; ?></span><span class="label">Playtime</span></div>
-        <div class="stat-tile"><span class="value"><?= isset($character) ? '#' . $character['rank'] : '-'; ?></span><span class="label">Ladder rank</span></div>
-        <div class="stat-tile"><span class="value"><?= isset($character) ? \number_format($character['item_level']) : '-'; ?></span><span class="label">Item level</span></div>
+        <div class="stat-tile"><span class="value"><?= $character['level']; ?></span><span class="label">Level</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($character['playtime']); ?> h</span><span class="label">Playtime</span></div>
+        <div class="stat-tile"><span class="value"><?= $rank !== null ? '#' . \number_format($rank) : '-'; ?></span><span class="label">Ladder rank</span></div>
+        <div class="stat-tile"><span class="value"><?= \number_format($character['item_level']); ?></span><span class="label">Item level</span></div>
     </div>
 
     <div class="layout-split right">
@@ -145,12 +119,12 @@ $eventUrl = function (array $params) use ($profile) : string {
             <h2>Equipment</h2>
             <?php
                 $viewCaption = $this->printHtml($profile->name)
-                    . ($character !== null ? ' &middot; Level ' . $character['level'] . ' ' . $this->printHtml($character['class']) : '');
+                    . ' &middot; Level ' . $character['level'] . ' ' . $this->printHtml($character['class']);
                 include __DIR__ . '/equipment_paperdoll.tpl.php';
             ?>
         </div>
         <div class="panel">
-            <h2>Stats</h2>
+            <h2>Details</h2>
             <dl class="stat-list">
                 <?php foreach ($stats as $name => $value) : ?>
                     <dt><?= $name; ?></dt><dd><?= $value; ?></dd>
@@ -186,7 +160,7 @@ $eventUrl = function (array $params) use ($profile) : string {
 
         <div class="filter-chips">
             <a href="<?= $eventUrl([]); ?>"<?= $eventType === '' ? ' class="active"' : ''; ?>>All</a>
-            <?php foreach (SampleCharacterHistory::EVENT_TYPES as $key => $typeTitle) : ?>
+            <?php foreach (CharacterData::EVENT_TYPES as $key => $typeTitle) : ?>
                 <a href="<?= $eventUrl(['type' => $key]); ?>"<?= $eventType === $key ? ' class="active"' : ''; ?>><?= $typeTitle; ?></a>
             <?php endforeach; ?>
         </div>
@@ -195,7 +169,7 @@ $eventUrl = function (array $params) use ($profile) : string {
         <?php foreach ($events as $event) : ?>
             <li class="event event-<?= $event['type']; ?>">
                 <span class="event-date"><?= $event['date']->format('Y-m-d H:i'); ?></span>
-                <span class="event-type"><?= SampleCharacterHistory::EVENT_TYPES[$event['type']]; ?></span>
+                <span class="event-type"><?= CharacterData::EVENT_TYPES[$event['type']]; ?></span>
                 <span class="event-title<?= $event['rarity'] !== '' ? ' rarity-' . $event['rarity'] : ''; ?>">
                     <?php if ($event['link'] !== '') : ?>
                         <a href="<?= $event['link']; ?>"><?= $this->printHtml($event['title']); ?></a>
@@ -212,19 +186,10 @@ $eventUrl = function (array $params) use ($profile) : string {
             <p class="muted">No events recorded.</p>
         <?php endif; ?>
 
-        <?php if ($pages > 1) : ?>
-        <nav class="pager">
-            <?php if ($page > 1) : ?><a href="<?= $eventUrl(['type' => $eventType, 'page' => $page - 1]); ?>">&laquo;</a><?php endif; ?>
-            <?php for ($p = \max(1, $page - 3); $p <= \min($pages, $page + 3); ++$p) : ?>
-                <?php if ($p === $page) : ?>
-                    <span class="current"><?= $p; ?></span>
-                <?php else : ?>
-                    <a href="<?= $eventUrl(['type' => $eventType, 'page' => $p]); ?>"><?= $p; ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-            <?php if ($page < $pages) : ?><a href="<?= $eventUrl(['type' => $eventType, 'page' => $page + 1]); ?>">&raquo;</a><?php endif; ?>
-        </nav>
-        <?php endif; ?>
+        <?php
+            $pageUrl = fn (int $p) : string => $eventUrl(['type' => $eventType, 'page' => $p]);
+            include __DIR__ . '/pager.tpl.php';
+        ?>
     </div>
 <?php endif; ?>
 </div>

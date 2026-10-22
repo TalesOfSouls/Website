@@ -7,7 +7,8 @@
 <div class="floater page-section">
     <div class="layout-split right">
         <div class="panel">
-            <form class="site-form wide" method="POST" action="/contact">
+            <form id="contact-form" class="site-form wide" method="POST" action="/api/contact">
+                <input type="hidden" name="CSRF" value="<?= \phpOMS\Uri\UriFactory::getQuery('$CSRF'); ?>">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="contact-name">Name</label>

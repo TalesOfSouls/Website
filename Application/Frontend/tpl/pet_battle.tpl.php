@@ -1,10 +1,12 @@
 <?php
-// Link sample names to the sample character profiles
-$sampleCharacters = [];
-foreach ((include __DIR__ . '/../data/sample_profiles.php')['characters'] as $sampleId => $sampleCharacter) {
-    $sampleCharacters[$sampleCharacter['name']] = $sampleId;
-}
-$characterUrl = fn (string $name) : string => '/player/character/profile' . (isset($sampleCharacters[$name]) ? '/' . $sampleCharacters[$name] : '');
+// @todo Pets aren't stored yet, the character names are linked to the characters with the same name
+$characterUrl = function (string $name) : string {
+    static $ids = [];
+
+    $ids[$name] ??= \Models\CharacterMapper::get()->where('name', $name)->execute()->id;
+
+    return '/player/character/profile' . ($ids[$name] > 0 ? '/' . $ids[$name] : '');
+};
 
 // @todo Sample data until pet battles are recorded
 $ranking = [

@@ -1,5 +1,5 @@
 <?php
-use Application\Frontend\SampleFeedback;
+use Application\Frontend\Provider\FeedbackData;
 
 /** @var \phpOMS\Views\View $this */
 $feedbacks = $this->data['feedbacks'] ?? [];
@@ -25,13 +25,13 @@ $sortUrl = function (string $value) use ($query, $type, $state) : string {
         <input type="text" name="q" placeholder="Search feedback" value="<?= $this->printHtml($query); ?>">
         <select name="type">
             <option value="">Any type</option>
-            <?php foreach (SampleFeedback::TYPES as $t) : ?>
+            <?php foreach (FeedbackData::TYPES as $t) : ?>
                 <option<?= $t === $type ? ' selected' : ''; ?>><?= $t; ?></option>
             <?php endforeach; ?>
         </select>
         <select name="state">
             <option value="">Any state</option>
-            <?php foreach (SampleFeedback::STATES as $key => $title) : ?>
+            <?php foreach (FeedbackData::STATES as $key => $title) : ?>
                 <option value="<?= $key; ?>"<?= $key === $state ? ' selected' : ''; ?>><?= $title; ?></option>
             <?php endforeach; ?>
         </select>
