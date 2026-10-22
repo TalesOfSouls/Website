@@ -66,14 +66,13 @@ $secondaryStats = [
             <div>
                 <div class="panel">
                     <h2>Equipment</h2>
-                    <div class="equipment-grid">
-                        <?php foreach ($slots as $slot) : ?>
-                        <div class="equipment-slot">
-                            <span class="slot-name"><?= $this->printHtml($slot->name); ?></span>
-                            <span class="muted">Empty</span>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php
+                        // @todo Items can be chosen once builds can be saved
+                        $equipment   = [];
+                        $emptyText   = 'Choose item';
+                        $viewCaption = ($selectedClass === '' ? 'No class selected' : $this->printHtml($selectedClass)) . ' &middot; Level ' . $level;
+                        include __DIR__ . '/equipment_paperdoll.tpl.php';
+                    ?>
                 </div>
                 <div class="panel">
                     <h2>Skill tree <span class="muted">(<?= $selectedClass === '' ? 'no class selected' : $this->printHtml($selectedClass); ?>)</span></h2>

@@ -9,6 +9,11 @@ use Models\GuildMapper;
 use Models\FaqMapper;
 use Models\ItemMapper;
 use Models\RecipeMapper;
+use Application\Frontend\SampleAchievements;
+use Application\Frontend\SampleCharacterHistory;
+use Application\Frontend\SampleEncounters;
+use Application\Frontend\SampleFeedback;
+use Application\Frontend\SampleSeasons;
 use phpOMS\Account\PermissionType;
 use phpOMS\Contract\RenderableInterface;
 use phpOMS\Message\Http\HttpRequest;
@@ -437,7 +442,78 @@ final class FrontendController extends ModuleAbstract
 
     public function feedbackListView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
     {
-        return $this->createView($request, $response, 'feedback_list', 'Feedback');
+        $view = $this->createView($request, $response, 'feedback_list', 'Feedback');
+
+        $query = \trim($request->getDataString('q') ?? '');
+        $type  = $request->getDataString('type') ?? '';
+        $state = $request->getDataString('state') ?? '';
+        $sort  = $request->getDataString('sort') ?? 'top';
+
+        $view->data['query'] = $query;
+        $view->data['type']  = \in_array($type, SampleFeedback::TYPES, true) ? $type : '';
+        $view->data['state'] = isset(SampleFeedback::STATES[$state]) ? $state : '';
+        $view->data['sort']  = \in_array($sort, ['top', 'new', 'comments'], true) ? $sort : 'top';
+
+        $view->data['feedbacks'] = SampleFeedback::filter(
+            SampleFeedback::all($this->getSampleProfiles()),
+            $view->data['query'], $view->data['type'], $view->data['state'], $view->data['sort']
+        );
+
+        return $view;
+    }
+
+    /**
+     * Single feedback incl. comments and votes
+     *
+     * Votes and comments are sent as normal form posts (no JavaScript).
+     *
+     * @todo Require a signed in account, store votes (one per account) and comments
+     */
+    public function feedbackView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $id       = (int) $request->uri->getPathElement(1);
+        $feedback = SampleFeedback::get($id, $this->getSampleProfiles());
+
+        $view = $this->createView($request, $response, 'feedback_view', $feedback['title'] ?? 'Feedback');
+        $view->data['feedback'] = $feedback;
+
+        if ($feedback === null) {
+            $response->header->status = RequestStatusCode::R_404;
+
+            return $view;
+        }
+
+        $view->data['vote']         = '';
+        $view->data['commentVotes'] = [];
+        $view->data['newComment']   = null;
+        $view->data['commentError'] = false;
+
+        if ($request->getRouteVerb() === RouteVerb::SET) {
+            $vote = $request->getDataString('vote') ?? '';
+            $vote = \in_array($vote, ['up', 'down'], true) ? $vote : '';
+
+            switch ($request->getDataString('action') ?? '') {
+                case 'vote':
+                    $view->data['vote'] = $vote;
+                    break;
+                case 'comment-vote':
+                    $commentId = (int) ($request->getDataString('comment') ?? 0);
+                    if ($vote !== '' && $commentId > 0) {
+                        $view->data['commentVotes'][$commentId] = $vote;
+                    }
+                    break;
+                case 'comment':
+                    $text = \trim($request->getDataString('text') ?? '');
+                    if ($text === '' || \mb_strlen($text) > 2000) {
+                        $view->data['commentError'] = true;
+                    } else {
+                        $view->data['newComment'] = ['text' => $text, 'date' => new \DateTime('now')];
+                    }
+                    break;
+            }
+        }
+
+        return $view;
     }
 
     public function feedbackCreateView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
@@ -488,6 +564,65 @@ final class FrontendController extends ModuleAbstract
         $view->data['sample']  = $this->getSampleProfiles();
         $view->data['profile'] = $this->findProfile(AccountMapper::class, (int) $request->uri->getPathElement(2), $view->data['sample']['players']);
 
+        // Tabs: overview, achievements, seasons, dungeon, raid, worldboss, pvp
+        $tab = $request->getDataString('tab') ?? 'overview';
+        if (!isset(SampleEncounters::TYPES[$tab]) && !\in_array($tab, ['achievements', 'seasons'])) {
+            $tab = 'overview';
+        }
+
+        $since = $view->data['sample']['players'][$view->data['profile']->id]['since'] ?? '2024-07-01';
+        $view->data['achievements'] = $view->data['profile']->id > 0
+            ? SampleAchievements::forPlayer($view->data['profile']->id, $since)
+            : [];
+
+        // Seasonal results, one season is shown in detail (default: newest season played)
+        if ($tab === 'seasons') {
+            $seasons = $view->data['profile']->id > 0
+                ? SampleSeasons::forPlayer($view->data['profile']->id, $since)
+                : [];
+
+            $selected = (int) ($request->getDataString('season') ?? 0);
+            if (!isset($seasons[$selected])) {
+                $played   = \array_filter($seasons, fn ($s) => $s['played']);
+                $selected = (int) (\array_key_first($played) ?? \array_key_first($seasons) ?? 0);
+            }
+
+            $view->data['seasons']        = $seasons;
+            $view->data['selectedSeason'] = $selected;
+        }
+
+        $view->data['tab']        = $tab;
+        $view->data['encounters'] = !isset(SampleEncounters::TYPES[$tab])
+            ? []
+            : SampleEncounters::forPlayer($view->data['profile']->id, $tab, $view->data['sample']);
+
+        return $view;
+    }
+
+    /**
+     * Detail page of a dungeon run, raid or world boss fight of a player
+     *
+     * Url: /player/profile/{player}/{type}/{id}
+     */
+    public function profileEncounterView(RequestAbstract $request, ResponseAbstract $response, $data = null): RenderableInterface
+    {
+        $samples  = $this->getSampleProfiles();
+        $profile  = $this->findProfile(AccountMapper::class, (int) $request->uri->getPathElement(2), $samples['players']);
+        $type     = $request->uri->getPathElement(3);
+
+        $encounter = $profile->id === 0
+            ? null
+            : SampleEncounters::get($profile->id, $type, (int) $request->uri->getPathElement(4), $samples);
+
+        if ($encounter === null) {
+            return $this->createView($request, $response, 'error/404', 'Not found');
+        }
+
+        $view = $this->createView($request, $response, $type === 'pvp' ? 'profile_pvp_match' : 'profile_encounter', $encounter['title']);
+        $view->data['profile']   = $profile;
+        $view->data['encounter'] = $encounter;
+        $view->data['sample']    = $samples;
+
         return $view;
     }
 
@@ -506,6 +641,33 @@ final class FrontendController extends ModuleAbstract
 
         $view->data['sample']  = $this->getSampleProfiles();
         $view->data['profile'] = $this->findProfile(CharacterMapper::class, (int) $request->uri->getPathElement(3), $view->data['sample']['characters']);
+
+        // Tabs: overview, log
+        $tab = $request->getDataString('tab') ?? 'overview';
+        $view->data['tab'] = \in_array($tab, ['overview', 'log']) ? $tab : 'overview';
+
+        // Event log filter & paging
+        $character = $view->data['sample']['characters'][$view->data['profile']->id] ?? null;
+        $events    = $character !== null && $view->data['tab'] === 'log'
+            ? SampleCharacterHistory::events($view->data['profile']->id, $character, $view->data['sample'])
+            : [];
+
+        $type = $request->getDataString('type') ?? '';
+        if (isset(SampleCharacterHistory::EVENT_TYPES[$type])) {
+            $events = \array_values(\array_filter($events, fn ($event) => $event['type'] === $type));
+        } else {
+            $type = '';
+        }
+
+        $perPage = 40;
+        $pages   = \max(1, (int) \ceil(\count($events) / $perPage));
+        $page    = \min($pages, \max(1, $request->getDataInt('page') ?? 1));
+
+        $view->data['events']     = \array_slice($events, ($page - 1) * $perPage, $perPage);
+        $view->data['eventCount'] = \count($events);
+        $view->data['eventType']  = $type;
+        $view->data['page']       = $page;
+        $view->data['pages']      = $pages;
 
         return $view;
     }

@@ -13,7 +13,8 @@ foreach ($this->data['profiles'] as $profile) {
 }
 
 foreach ($samples['players'] as $id => $player) {
-    $rows[] = ['id' => $id, 'name' => $player['name'], 'characters' => \count($player['characters']), 'points' => \number_format($player['achievement_points'])];
+    $points = \array_sum(\array_column(\Application\Frontend\SampleAchievements::forPlayer($id, $player['since']), 'points'));
+    $rows[] = ['id' => $id, 'name' => $player['name'], 'characters' => \count($player['characters']), 'points' => \number_format($points)];
 }
 ?>
 <div class="floater">

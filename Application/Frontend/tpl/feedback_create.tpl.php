@@ -31,16 +31,6 @@
                 <textarea id="feedback-description" name="description" required></textarea>
                 <span class="form-hint">For bugs: what happened, what did you expect and how can we reproduce it?</span>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="feedback-server">Server (optional)</label>
-                    <input id="feedback-server" type="text" name="server">
-                </div>
-                <div class="form-group">
-                    <label for="feedback-character">Character (optional)</label>
-                    <input id="feedback-character" type="text" name="character">
-                </div>
-            </div>
             <button type="submit" class="featured">Submit</button>
             <a class="button" href="/feedback">Cancel</a>
         </form>

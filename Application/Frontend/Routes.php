@@ -58,6 +58,7 @@ return [
     // Profiles
     '^/player/profile' . $q                   => $page('profilePlayerListView'),
     '^/player/profile/\d+' . $q               => $page('profilePlayerView'),
+    '^/player/profile/\d+/(dungeon|raid|worldboss|pvp)/\d+' . $q => $page('profileEncounterView'),
     '^/player/character/profile' . $q         => $page('profileCharacterListView'),
     '^/player/character/profile/\d+' . $q     => $page('profileCharacterView'),
     '^/guild/profile' . $q                    => $page('profileGuildListView'),
@@ -82,6 +83,7 @@ return [
     '^/recordings' . $q               => $page('recordingListView'),
     '^/feedback' . $q                 => $page('feedbackListView'),
     '^/feedback/create' . $q          => $page('feedbackCreateView', RouteVerb::GET | RouteVerb::SET),
+    '^/feedback/\d+' . $q              => $page('feedbackView', RouteVerb::GET | RouteVerb::SET),
 
     // Shop
     '^/shop' . $q                     => $page('shopView'),
